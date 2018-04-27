@@ -23,10 +23,6 @@
       </h3>
     </div>
     <div class="panel-body">
-    {% if role == 'Take' %}
-      {% if not exam_available %}
-        <i>Sorry, this exam is unavailable to you at this time.</i>
-      {% else %}
         <form id="exam_form" action="" method="post">
           {% csrf_token %}
           <ol id="question-list">
@@ -61,10 +57,6 @@
             </button>
           </div>
         </form>
-      {% endif %}
-    {% else %}
-      {% include "exams/exam_grade.html" %}
-    {% endif %}
     </div>
   </div>
 {% endblock %}
