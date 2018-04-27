@@ -49,7 +49,7 @@ class XBApplication(models.Model):
   )
 
   CITIZENSHIP_CHOICES = (
-      ('C', 'Citizenship'),
+      ('C', 'US Citizen'),
       ('R', 'Permanent Resident'),
       ('O', 'Other'),
   )
@@ -57,7 +57,7 @@ class XBApplication(models.Model):
   ATTITUDE_CHOICES = (
       ('A', 'Agree'),
       ('D', 'Disagree'),
-      ('B', 'AlsoBurdened'),
+      ('B', 'Also Burdened'),
   )
 
   SUPPORT_CHOICES = (
@@ -191,3 +191,6 @@ class XBApplication(models.Model):
   @property
   def name_of_model(self):
     return self.__class__.__name__
+
+  def menu_title(self):
+    return "XB Application"

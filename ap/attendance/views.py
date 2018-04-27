@@ -32,6 +32,7 @@ from terms.serializers import TermSerializer
 
 from braces.views import GroupRequiredMixin
 
+from ap.forms import TraineeSelectForm
 from aputils.trainee_utils import trainee_from_user, is_trainee
 from aputils.eventutils import EventUtils
 from aputils.decorators import group_required
@@ -52,7 +53,7 @@ def react_attendance_context(trainee):
   rolls = rolls.filter(id__in=main_rolls)
   individualslips = IndividualSlip.objects.filter(trainee=trainee).prefetch_related('rolls')
   groupslips = GroupSlip.objects.filter(Q(trainees__in=[trainee])).distinct().prefetch_related('trainees')
-  TAs = TrainingAssistant.objects.filter(groups__name='training_assistant')
+  TAs = TrainingAssistant.objects.filter(groups__name='regular_training_assistant')
   term = [Term.current_term()]
   ctx = {
       'events_bb': listJSONRenderer.render(AttendanceEventWithDateSerializer(events, many=True).data),
@@ -64,6 +65,7 @@ def react_attendance_context(trainee):
       'groupslips_bb': listJSONRenderer.render(GroupSlipSerializer(groupslips, many=True).data),
       'TAs_bb': listJSONRenderer.render(TrainingAssistantSerializer(TAs, many=True).data),
       'term_bb': listJSONRenderer.render(TermSerializer(term, many=True).data),
+      'trainee_select_form': TraineeSelectForm()
   }
   return ctx
 

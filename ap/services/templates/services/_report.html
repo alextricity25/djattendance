@@ -1,14 +1,10 @@
 <h1 id="title">
-  {% if h %}
-    {{ h }}
-  {% else %}
-    {{ page_title }}
-  {% endif %}
+  {{ page_title }}{% if h %} for {{ h }}{% endif %}
   <div class="cws"></div>
 </h1>
 
 <br><br>
-<h3>General Notes:</h3>
+<h3>General Notes</h3>
   <table id="weekdate_match">
     <tr>
       {% for day in 1|get_weekday_codes %}
@@ -18,7 +14,7 @@
     <tr class="this_week">
     </tr>
   </table>
-<br><br>
+<br>
 <ul>
   <li>If you have a pre-approved leave of absence, please bring a note to {{schedulers}} or the service schedule mailbox by <div class="notice_date"></div>.</li>
   <li>{{encouragement}}</li>
@@ -27,7 +23,8 @@
   <li>Returning trainees may not switch services with first-term trainees. Trainees with cars must switch only with other trainees with cars, unless transportation for the service is not required.</li>
   <li>Trainees with an unexcused missed service are responsible to complete one regular Life-study summary and one make-up service. Make-up services should be noted on the missed service make-up list by the kitchen. Trainees who do not make up services will be assigned Monday Life-study summaries and be volunteered for additional services.</li>
 </ul>
-<h3>Service Notes:</h3>
+<h3>Service Notes</h3>
+<br>
 <ol>
   <li>Breakfast prep begins at 6:30am Tuesday through Saturday and 6:45am on Lord's Day; Breakfast is served at 7:30am Tuesday through Saturday and 7:45am on Lord's Day; Breakfast cleanup begins at 7:50am Tuesday through Saturday and at 8:05am on Lord's Day. Please report to the prep or cleanup star in the kitchen and check off your name on the kitchen teams sign-in sheet</li>
   <li>Lunch prep begins at 9:00am. Lunch is served at 11:45am. Lunch cleanup begins at 12:05pm. Please report to the prep or cleanup star in the kitchen and check off your name on the kitchen sign-in sheet.</li>
@@ -44,7 +41,7 @@
   <thead>
     <tr>
       <th>Name</th>
-      {% for category in categories|dictsort:"description" %}
+      {% for category in categories %}
       <th>{{ category.name }}</th>
       {% endfor %}
       <th>Designated Services</th>
@@ -71,7 +68,7 @@
         <td class="name">
           {{ worker.trainee.full_name2 }}
         </td>
-        {% for category in categories|dictsort:"description"%}
+        {% for category in categories %}
           {% if category in worker.services %}
           <td >
             {% with services=worker.services|get_item:category %}

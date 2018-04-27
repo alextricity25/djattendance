@@ -11,6 +11,7 @@ from django.db.models import Q
 import sys
 from contextlib import contextmanager
 
+AMs = Trainee.objects.filter(groups__name='attendance_monitors')
 
 @contextmanager
 def stdout_redirected(new_stdout):
@@ -151,8 +152,7 @@ class Command(BaseCommand):
     print '--------------- Error Rolls -------------'
     for er in error_rolls:
       print str(er.id) + ' ' + str(er.trainee) + ' ' + str(er.event) + ' ' + str(er.date) + ' ' + str(er.submitted_by) + ' ' + str(er.status) + ' ' + str(er.last_modified)
-    
-    AMs = Trainee.objects.filter(groups__name='attendance_monitors')
+
     print '------------ For Attendanece Monitros ----------'
     for am in AMs:
       print am
@@ -173,6 +173,7 @@ class Command(BaseCommand):
     ghost_rolls = []
     self_inputted = []
 
+
     def find_possible_slips(roll):
       # check to see if there's a leaveslip submitted by the trainee for other rolls or events on the date that this roll takes place
       return roll.trainee.individualslips.filter(rolls__date__in=[roll.date])
@@ -189,12 +190,14 @@ class Command(BaseCommand):
 
           if r.submitted_by == r.trainee:
             self_inputted.append(r)
+          if r.submitted_by in AMs:
+            am_inputted.append(r)
 
-      except Exception as e:
+            except Exception as e:
         print output.format(r.id, e, r.submitted_by)
     print 'ghost rolls: ' + str(len(ghost_rolls))
     print 'self inputted rolls: ' + str(len(self_inputted))
-
+    print 'attendance monitor inputted rolls: ' + str(len(am_inputted))
   file_name = '../mislink_leaveslips' + RIGHT_NOW + '.txt'
 
   # @open_file(file_name)
@@ -233,12 +236,11 @@ class Command(BaseCommand):
 
     output = 'Roll ID {0} {1} submitted_by {2} on {3}'
     two_rolls = []
+    two_am_rolls = []
     three_rolls = []
     trainees_with_duplicates = []
 
-    AMs = User.objects.filter(groups__name__in='attendance_monitors')
     for t in Trainee.objects.filter(self_attendance=False).order_by('lastname', 'firstname'):
-
       invalid_duplicates = False
       duplicate_rolls = []
       trainee_rolls = Roll.objects.filter(trainee=t).order_by('date', 'event').distinct('date', 'event')
@@ -263,8 +265,11 @@ class Command(BaseCommand):
 
         print '\n'
 
+    two_am_rolls = [qs for qs in two_rolls if qs.filter(submitted_by__in=AMs).count() == 2]
+
     print 'sets of duplicate rolls: ' + str(len(two_rolls) + len(three_rolls))
     print 'two rolls: ' + str(len(two_rolls))
+    print 'two rolls both submitted by attendance monitors: ' + str(len(two_am_rolls))
     print 'three rolls: ' + str(len(three_rolls))
     print 'trainees duplicate rolls: ' + str(len(trainees_with_duplicates))
 

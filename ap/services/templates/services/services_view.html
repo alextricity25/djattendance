@@ -143,9 +143,12 @@ Service Scheduling
   <!-- Assign Tab -->
     <div role="tabpanel" class="tab-pane active" id="assign">
       {% if status == 'INFEASIBLE' %}
-      <br/>
         <div class="alert alert-danger" role="alert">
           Parameters are too constrained to solve assignment problem. Please give workers <a class="fake-tab-link" href ="#workers">more capacity</a> or <a class="fake-tab-link" href="#services">lower workers required</a> for services. You can also take a look at the <a class="fake-tab-link" href="#graph">graph</a> to see if there are too many exceptions blocking out workers from services. Finally, you have the option of going into <a href="#" class="manual-mode">Manual Mode</a>.
+        </div>
+      {% else %}
+        <div class="alert alert-info" role="alert">
+          <a href="#" class="manual-mode">Go into Manual Mode</a>.
         </div>
       {% endif %}
       {% for category in categories %}
@@ -177,8 +180,8 @@ Service Scheduling
                     {% for a in slot.assignments.all %}
                       <td>
                         <div class="worker-text" data-workers="{{ a.workers.all|input_workerID_list }}" data-max="{{ slot.workers_required }}">
-                        {% for w in a.workers.all %}
-                          <span class="{% if w.trainee.gender == 'B' %}text-brothers{% else %}text-sisters{% endif %}">{{ w.trainee.full_name }}</span>,
+                        {% for w in a.workers.all|dictsort:"trainee.lastname" %}
+                          <span class="{% if w.trainee.gender == 'B' %}text-brothers{% else %}text-sisters{% endif %}">{{ w.trainee.full_name2 }}</span>,
                         {% endfor %}
                         </div>
                         <div class="worker-input no-show">
