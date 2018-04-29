@@ -46,10 +46,6 @@ class InterimIntentionsForm(forms.ModelForm):
 class InterimIntentionsAdminForm(forms.ModelForm):
   def __init__(self, *args, **kwargs):
     super(InterimIntentionsAdminForm, self).__init__(*args, **kwargs)
-    # self.fields['date_1yr_return'].required = True
-    # self.fields['date_2yr_return'].required = True
-    # self.fields['earliest_arrival_date'].required = True
-    # self.fields['term_begin_date'].required = True
 
   class Meta:
     model = InterimIntentionsAdmin

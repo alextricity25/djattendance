@@ -85,11 +85,16 @@ class InterimIntentionsAdminView(UpdateView, GroupRequiredMixin):
     return super(InterimIntentionsAdminView, self).get(request, *args, **kwargs)
 
   def post(self, request, *args, **kwargs):
-    self.object = self.get_object()
-    return super(InterimIntentionsAdminView, self).post(request, *args, **kwargs)
-
-  def form_valid(self, form):
-    return super(InterimIntentionsAdminView, self).form_valid(form)
+    obj = self.get_object()
+    data = self.request.POST.copy()
+    obj.open_time = datetime.strptime(data['open_time'], "%m/%d/%Y %I:%M %p")
+    obj.close_time = datetime.strptime(data['close_time'], "%m/%d/%Y %I:%M %p")
+    obj.date_1yr_return = datetime.strptime(data['date_1yr_return'], "%m/%d/%Y %I:%M %p")
+    obj.date_2yr_return = datetime.strptime(data['date_2yr_return'], "%m/%d/%Y %I:%M %p")
+    obj.term_begin_date = datetime.strptime(data['term_begin_date'], "%m/%d/%Y")
+    obj.earliest_arrival_date = datetime.strptime(data['earliest_arrival_date'], "%m/%d/%Y")
+    obj.save()
+    return super(InterimIntentionsAdminView, self).get(request, *args, **kwargs)
 
   def get_context_data(self, **kwargs):
     ctx = super(InterimIntentionsAdminView, self).get_context_data(**kwargs)

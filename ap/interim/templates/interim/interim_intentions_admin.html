@@ -19,6 +19,7 @@
 {% block scripts %}
 <script type="text/javascript">
   $(document).ready(() => {
+    console.log("{{form.date_1yr_return.value}}")
 
     $('.datetimepicker').datetimepicker({
       format:'m/d/Y g:i A',
@@ -42,6 +43,23 @@
 </script>
 {% endblock %}
 
+-{% if form.errors %} 
+-<!-- Error messaging --> 
+<div id="errors">  
+  <div class="inner">  
+    <p>There were some errors in the information you entered. Please correct the following:</p>  
+    {{ form.non_field_errors }}  
+    <ul> 
+      {% for field in form %}  
+        {% if field.errors %}<li>{{ field.label }}: {{ field.errors|striptags }}</li>{% endif %} 
+      {% endfor %} 
+    </ul>  
+  </div> 
+</div> 
+-<!-- /Error messaging -->  
+-{% endif %}  
+
+
 {% block content %}
 
 <h2>{{page_title}}</h2>
@@ -59,10 +77,10 @@
   </div>
   <div class="row">
     <div class="col-md-6">
-      <input class="datetimepicker" id="id_open_time" name="open_time" value="{{form.open_time.value|date:'m/d/Y H:i'}}">
+      <input class="datetimepicker" id="id_open_time" name="open_time" value="{{form.open_time.value}}">
     </div>
     <div class="col-md-6">
-      <input class="datetimepicker" id="id_close_time" name="close_time" value="{{form.close_time.value|date:'m/d/Y H:i'}}">
+      <input class="datetimepicker" id="id_close_time" name="close_time" value="{{form.close_time.value}}">
     </div>
   </div>
   <div class="row">
@@ -74,11 +92,11 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-md-6">      
-      <input class="datetimepicker" id="id_date_1yr_return" name="date_1yr_return" value="{{form.date_1yr_return.value|date:'m/d/Y H:i'}}">
+    <div class="col-md-6">
+      <input class="datetimepicker" id="id_date_1yr_return" name="date_1yr_return" value="{{form.date_1yr_return.value}}">
     </div>
     <div class="col-md-6">
-      <input class="datetimepicker" id="id_date_2yr_return" name="date_2yr_return" value="{{form.date_2yr_return.value|date:'m/d/Y H:i'}}">
+      <input class="datetimepicker" id="id_date_2yr_return" name="date_2yr_return" value="{{form.date_2yr_return.value}}">
     </div>
   </div>
   <div class="row">
@@ -91,10 +109,10 @@
   </div>
   <div class="row">
     <div class="col-md-6">      
-      <input class="datepicker" id="id_earliest_arrival_date" name="earliest_arrival_date" value="{{form.earliest_arrival_date.value|date:'m/d/Y'}}">
+      <input class="datepicker" id="id_earliest_arrival_date" name="earliest_arrival_date" value="{{form.earliest_arrival_date.value}}">
     </div>
     <div class="col-md-6">
-      <input class="datepicker" id="id_term_begin_date" name="term_begin_date" value="{{form.term_begin_date.value|date:'m/d/Y'}}">
+      <input class="datepicker" id="id_term_begin_date" name="term_begin_date" value="{{form.term_begin_date.value}}">
     </div>
   </div>  
 </div>
