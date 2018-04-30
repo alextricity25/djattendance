@@ -124,7 +124,7 @@
             <th>{{form.consideration_due_date}}</th>
           </tr>
            <tr> 
-            <th><label for="{{form.website_show_status.id_for_label}}" data-toggle="tooltip" data-placement="right" title="Report"><a href="{% url 'graduation:website-report' % ">{{form.website_show_status.label}}</a></label></th>
+            <th><label for="{{form.website_show_status.id_for_label}}" data-toggle="tooltip" data-placement="right" title="Report"><a href="{% url 'graduation:website-report' %}">{{form.website_show_status.label}}</a></label></th>
             <th>{{form.website_show_status}}</th>  
             <th><label for="{{form.website_due_date.id_for_label}}" data-toggle="tooltip" data-placement="right" title="Trainee View"><a href="{% url 'graduation:website-view' %}">{{form.website_due_date.label}}</a></label></th> 
             <th>{{form.website_due_date}}</th> 

@@ -27,14 +27,16 @@
         $("#id_marital_1").prop('checked', true)
       }else if (load_val == 'M'){
         $("#id_marital_2").prop('checked', true)
+        $("#spouse_question").show() //on load
       }else if (load_val == 'E'){
         $("#id_marital_3").prop('checked', true)
+        $("#spouse_question").show() // on load
       }else if (load_val == 'D'){
         $("#id_marital_4").prop('checked', true)
       }
 
       $("#id_marital_1").change(function(){
-        $("#spouse_question").toggle()
+        $("#spouse_question").hide()
       })
 
       $("#id_marital_2").change(function(){
@@ -133,7 +135,7 @@
     $( document ).ready(() => {
       // hide optional sections and uncheck all radio buttons
       $(".hide_initial").hide()
-      $(":radio").prop('checked', false)
+      //$(":radio").prop('checked', false) // commenting out because it erases already entered data.
 
       automobile()
       citizenship()

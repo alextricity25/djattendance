@@ -7,7 +7,7 @@ from django.contrib import admin
 from django.conf.urls.static import static
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
-from .views import home, custom404errorview
+from .views import home, custom404errorview, custom500errorview, custom503errorview
 from accounts.views import *
 from audio.views import AudioRequestViewSet
 from schedules.views import EventViewSet, ScheduleViewSet, AllEventViewSet, AllScheduleViewSet
@@ -76,6 +76,8 @@ urlpatterns = [
   # Edit URLs
   url(r'^forms/', include('fobi.urls.edit')),
   url(r'^404/$', custom404errorview),  # for development
+  url(r'^500/$', custom500errorview),  # for development
+  url(r'^503/$', custom503errorview),  # for development
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 router = BulkRouter()
@@ -151,3 +153,5 @@ urlpatterns += [
 ]
 
 handler404 = 'ap.views.custom404errorview'  # if settings.DEBUG = FALSE
+handler500 = 'ap.views.custom500errorview'  # if settings.DEBUG = FALSE
+handler503 = 'ap.views.custom503errorview'  # if settings.DEBUG = FALSE

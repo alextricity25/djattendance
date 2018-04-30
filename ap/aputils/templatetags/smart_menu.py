@@ -146,7 +146,7 @@ def generate_menu(context):
       specific=[
           SubMenuItem(name='Grad Admin', permission='graduation.add_gradadmin', url='graduation:grad-admin', condition=user.has_group(['training_assistant'])),
       ],
-      trainee_only=[SubMenuItem(name='Invites & DVDs', url=f.get_absolute_url()) if f.name_of_model == 'Misc' else SubMenuItem(name=f.name_of_model, url=f.get_absolute_url()) for f in grad_forms(user)]
+      trainee_only=[SubMenuItem(name=f.menu_title(), url=f.get_absolute_url()) for f in grad_forms(user)]
   )
 
   # For every 'current' item that needs to appear in the side-bar, ie exams to be taken, iterim intentions form, exit interview, etc, the context variable needs to be added to the context, and the menu item can be added here as follows

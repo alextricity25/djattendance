@@ -9,6 +9,7 @@ from aputils.trainee_utils import is_trainee, is_TA, trainee_from_user
 from bible_tracker.models import BibleReading
 from terms.models import Term
 from house_requests.models import MaintenanceRequest
+from django.core.urlresolvers import reverse_lazy
 
 
 @login_required
@@ -44,5 +45,26 @@ def home(request):
 
   return render(request, 'index.html', context=data)
 
+
 def custom404errorview(request):
-  return render(request, '404error.html')
+  ctx = {
+    'image_path': 'img/404error.png',
+    'page_title': 'Page Not Found'
+  }
+  return render(request, 'error.html', context=ctx)
+
+
+def custom500errorview(request):
+  ctx = {
+    'image_path': 'img/500error.png',
+    'page_title': 'Internal Server Error'
+  }
+  return render(request, 'error.html', context=ctx)
+
+
+def custom503errorview(request):
+  ctx = {
+    'image_path': 'img/503error.png',
+    'page_title': 'Service Unavailable'
+  }
+  return render(request, 'error.html', context=ctx)

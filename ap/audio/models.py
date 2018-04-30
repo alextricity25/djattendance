@@ -104,7 +104,7 @@ class AudioFile(models.Model):
     elif code == 'PS':
       fellowship_code = trainee.groups.filter(name='PSRP_facilitator').exists()
     else:
-      return True
+      fellowship_code = True
     return class_visible and fellowship_code
 
   def __unicode__(self):
@@ -152,7 +152,7 @@ class AudioFile(models.Model):
       return 1
     elif self.code in ('B2', 'LS', 'E2', 'NJ'):
       return 2
-    else: # main classes: 'MR', 'FM', 'CH', 'GK', 'GW', 'GE', 'B2', 'SP', FW')
+    else:  # main classes: 'MR', 'FM', 'CH', 'GK', 'GW', 'GE', 'B2', 'SP', FW')
       return 0
 
   def get_full_name(self):

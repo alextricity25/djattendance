@@ -56,7 +56,7 @@ export const SLIP_TYPES = [
 ]
 
 export const TA_IS_INFORMED = {id: 'true', name: 'Yes, by a TA'}
-export const TA_EMPTY = {id: 'empty', name: ''}
+export const TA_EMPTY = {id: '-1', name: ''}
 
 export const INFORMED = [
   TA_IS_INFORMED,
@@ -100,20 +100,18 @@ export function categorizeEventStatus(wesr) {
   let slip = wesr.slip || {}
   let gslip = wesr.gslip || {}
   let statuses = [slip.status, gslip.status]
-  if (statuses.includes('A') || statuses.includes('S')) {
+  if (statuses.includes('A')) {
     status.slip = 'approved'
-    status.roll = 'excused'
-    return status
-  } else if (statuses.includes('P')) {
+  } else if (statuses.includes('F')) {
+    status.slip = 'fellowship'
+  } else if (statuses.includes('P') || statuses.includes('S')) {
     status.slip = 'pending'
   } else if (statuses.includes('D')) {
     status.slip = 'denied'
-  } else if (statuses.includes('F')) {
-    status.slip = 'fellowship'
   }
 
   if (!wesr.roll) {
-    return status;
+    status.roll = 'present'
   } else if(wesr.roll.status === "A") {
     status.roll = 'absent'
   } else if(['T', 'U', 'L'].includes(wesr.roll.status)) {

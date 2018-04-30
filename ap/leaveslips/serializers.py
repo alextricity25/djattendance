@@ -42,7 +42,7 @@ class IndividualSlipSerializer(BulkSerializerMixin, ModelSerializer):
     # TODO: Get all rolls and events in one go to save on db trips (optimization)
     # TODO: Delete empty rolls if events are removed
     for event in events:
-      roll = Roll.objects.filter(event=event['id'], date=event['date'])
+      roll = Roll.objects.filter(event=event['id'], date=event['date'], trainee=instance.trainee)
       if roll:
         try:
           instance.rolls.add(roll[0])

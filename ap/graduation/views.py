@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 from django.views.generic.edit import UpdateView
 from django.views.generic import ListView
-from django.db.models import Sum
 from django.template.defaultfilters import title
 
 from terms.models import Term
@@ -15,8 +14,6 @@ from xb_application.models import XBAdmin
 from braces.views import GroupRequiredMixin
 
 from datetime import datetime
-from itertools import chain
-from operator import attrgetter
 from collections import OrderedDict
 
 MODELS = [Testimony, Consideration, Website, Outline, Remembrance, Misc]
@@ -92,7 +89,7 @@ class MiscView(CreateUpdateView):
     return ctx
 
 
-class GradAdminView(UpdateView, GroupRequiredMixin):
+class GradAdminView(GroupRequiredMixin, UpdateView):
   model = GradAdmin
   form_class = GradAdminForm
   template_name = 'graduation/grad_admin.html'
@@ -146,15 +143,16 @@ class GradAdminView(UpdateView, GroupRequiredMixin):
     return ctx
 
 
-class ReportView(ListView):
+class ReportView(GroupRequiredMixin, ListView):
+  group_required = ['training_assistant', 'grad_committee']
 
   def get_context_data(self, **kwargs):
     context = super(ReportView, self).get_context_data(**kwargs)
-
-    context['data'] = self.model.objects.all()
+    context['data'] = self.model.objects.filter(trainee__current_term=4)
     context['title'] = title(self.model._meta.verbose_name + ' Report')
 
     return context
+
 
 class TestimonyReport(ReportView):
   model = Testimony
@@ -179,6 +177,7 @@ class OutlineReport(ReportView):
 class MiscReport(ReportView):
   model = Misc
   template_name = 'graduation/misc_report.html'
+
 
 class RemembranceReport(ReportView):
   model = Remembrance

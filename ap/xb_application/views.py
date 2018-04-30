@@ -62,6 +62,7 @@ class XBReportView(ListView):
 
   def get_context_data(self, **kwargs):
     ctx = super(XBReportView, self).get_context_data(**kwargs)
+    ctx['trainees'] = self.model.objects.filter(trainee__current_term=4, last_updated__isnull=False)
     ctx['page_title'] = 'FTTA-XB Application Report List'
     return ctx
 
@@ -75,4 +76,8 @@ class XBApplicationDetails(DetailView):
     obj = self.get_object()
     ctx['object'] = self.model.objects.filter(pk=obj.id).values()[0]
     ctx['trainee'] = obj.trainee
+    ctx['term'] = obj.xb_admin.term.next_term
+    ctx['narrative_wc'] = 0
+    if obj.narrative is not None and obj.narrative != "":
+      ctx['narrative_wc'] = len(obj.narrative.split(" "))
     return ctx

@@ -113,46 +113,46 @@
     action: toggle_function(2),
   };
 
-  var q_term = [true, true, true, true];
+  var q_year = [true, true];
   var q_gender = [true, true, true];
   var r_term = "";
 
   function evalYear() {
-    r_term = "";
-    for (i=0; i<5; i++) {
-      if (q_term[i]) {
-        r_term += (i+1)+"|";
-      }
+    r_term = "5";
+    if (q_year[0]) {
+      r_term += "1|2| ";
+    }
+    if (q_year[1]) {
+      r_term += "3|4 ";
     }
     r_term = "("+r_term.substring(0, r_term.length-1)+")";
+    console.log(r_term)
     table.column(1).search(r_term, true, false).draw();
   }
 
-  let term_filter = (terms) => {
+  let year_filter = (year) => {
     return function() {
       if (this.active()) {
         this.active("false");
-        for (let term in terms) {
-          q_term[term] = false;
-        }
+        q_year[year-1] = false;
       } else {
         this.active("true");
-        for (let term in terms) {
-          q_term[term] = true;
-        }
+        q_year[year-1] = true;
       }
       evalYear();
     }
   }
+
   $.fn.dataTable.ext.buttons.first_year = {
     text: '1st Year',
     init: init_function,
-    action: term_filter([0, 1]),
+    action: year_filter(1),
   };
+
   $.fn.dataTable.ext.buttons.second_year = {
     text: '2nd Year',
     init: init_function,
-    action: term_filter([2, 3]),
+    action: year_filter(2),
   };
 
   function evalGender() {
@@ -190,6 +190,23 @@
     action: gender_filter(1),
   };
 
+  function selfattendance_filter(bool){
+    table.column(3).search(bool, false, true).draw()
+  }
+
+  $.fn.dataTable.ext.buttons.self_attendance = {
+    text: 'On Self Attendance',
+    action: function(){
+      if (this.active()){
+        this.active("false");
+        selfattendance_filter("False")
+      } else {
+        this.active("true");
+        selfattendance_filter("True")
+      }
+    }
+  }
+
   $(function() {
     setWeeks();
     $("#week_menu option[id='week_{{ current_week }}']").attr("selected", "selected");
@@ -199,11 +216,7 @@
       ordering: true,
       columnDefs: [
         {
-          "targets": [ 1 ],
-          "visible": false
-        },
-        {
-          "targets": [ 2 ],
+          "targets": [ 1, 2, 3 ],
           "visible": false
         }
       ],
@@ -212,14 +225,20 @@
       },
       paging: false,
       iDisplayLength: -1,
+      {% if event_type != 'H' and event_type != 'T' and event_type != 'Y' %}
       scrollY: '45vh',
       scrollCollapse: true,
       scrollX: true,
+      autoWidth: true,
+      {% endif %}
       dom: '<"row"<"col-sm-6"lB><"col-sm-6"f>>' +
       '<"row"<"col-sm-12"<"table-responsive"tr>>>' +
       '<"row"<"col-sm-5"i><"col-sm-7"p>>',
       buttons: [
         // "order_by",
+        // only attendance monitors, devs, and tas can view these controls for the datatable
+        // this allows the display of headers and filter by trainee year, gender and self attendance
+        {% ifusergroup attendance_monitors|dev|training_assistant %}
         {
           extend: 'collection',
           text: 'Show/Hide Headers',
@@ -230,8 +249,14 @@
           text: 'Filters',
           buttons: ["first_year", "second_year", "brothers", "sisters"]
         },
+        
+        "self_attendance",
+        {% endifusergroup %}
       ],
     });
+
+    // normal HC or TM or YPC can only see trainees not on self-attendance
+    selfattendance_filter("False")    
 
     function getParamsForColumn(index) {
       var selects = $('.set_all');
@@ -296,18 +321,12 @@
     });
     if ("{{event_type}}" == "T") {
       {% for t in teams %}
-        $("#team_menu").append($("<option />").value("{{t.name}}").text("{{t.name}}"));
+        $("#team_menu").append($("<option />").val("{{t.name}}").text("{{t.name}}"));
       {% endfor %}
       $("#team_menu option[value='{{team}}']").attr("selected", "selected");
       $("#team_menu").on("change", function(e) {
         $(e.currentTarget).closest("form").submit();
       });
-
-      table.destroy()
-      //remove the nth column
-      $('table tr').find('td:eq(0)').remove();
-      $('table tr').find('td:eq(0)').remove();
-
     } else if ("{{event_type}}" == "H") {
       {% for h in houses %}
         $("#house_menu").append($("<option />").val("{{h.name}}").text("{{h.name}}"));
@@ -317,12 +336,6 @@
       $("#house_menu").on("change", function(e) {
         $(e.currentTarget).closest("form").submit();
       });
-
-      table.destroy()
-      //remove the nth column
-      $('table tr').find('td:eq(0)').remove();
-      $('table tr').find('td:eq(0)').remove();
-
     }
   });
 </script>
@@ -364,7 +377,7 @@
       </label>
     </div>
   </div>
-  <p>If there's no roll entered, it's assumed as a Present. Greenboxes means that there's a leaveslip.</p>
+  <p>If there's no roll entered, it's assumed as a Present. Green boxes mean that there's a leave slip.</p>
   <div class="row">
     <div class="col-md-12">
       &nbsp;
@@ -380,12 +393,14 @@
               <th class="date">Date</th>
               <td></td>
               <td></td>
+              <td></td>
               {% for event in event_list %}
               <th class="date">{{event.start_datetime|date:"D (m/d)"}}</th>
               {% endfor %}
             </tr>
             <tr>
               <th>Roll</th>
+              <td></td>
               <td></td>
               <td></td>
               {% for event in event_list %}
@@ -396,12 +411,14 @@
               <th>Time</th>
               <td></td>
               <td></td>
+              <td></td>
               {% for event in event_list %}
               <th>{{event.start_datetime|date:"P"}}</th>
               {% endfor %}
             </tr>
             <tr>
               <th>Set all</th>
+              <td></td>
               <td></td>
               <td></td>
               {% for event in event_list %}
@@ -440,6 +457,7 @@
               </th>
               <td>{{t.current_term}}</td>
               <td>{{t.gender}}</td>
+              <td>{{t.self_attendance}}</td>
               {% for event in event_list %}
               {% with events=trainees_event_list|get_item:t %}
               {% if event in events %}
