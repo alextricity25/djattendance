@@ -25,7 +25,13 @@ export const SLIP_STATUS_LOOKUP = {
     'P': 'pending',
     'F': 'fellowship',
     'D': 'denied',
-    'S': 'approved' //by TA sister
+}
+
+export const SLIP_STATUS_RANKINGS = {
+    'A': 1,
+    'F': 2,
+    'P': 3,
+    'D': 4
 }
 
 export const GROUP_SLIP_TYPES = [
