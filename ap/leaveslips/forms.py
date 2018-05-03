@@ -11,7 +11,6 @@ class LeaveslipForm(forms.ModelForm):
   def __init__(self, *args, **kwargs):
     super(LeaveslipForm, self).__init__(*args, **kwargs)
     self.fields['type'].label = 'Reason'
-    TA = self.instance.TA.full_name if self.instance.TA else 'N/A'
     if self.instance.TA:
       self.fields['TA'].label = 'TA assigned to this leave slip: %s' % self.instance.TA.full_name + '. Transfer to:'
     else:
