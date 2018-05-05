@@ -62,13 +62,14 @@ div.question {
 
 .MCCheckboxes li {
   display: block;
-  width: 40%;
+  width: 100%;
+  padding-left: 1%;
 }
 
 .fitb_answer_div li {
-    display: block;
-    float: left;
-    width: 40%;
+  display: block;
+  float: left;
+  width: 100%;
 }
 
 .OptionMC {

@@ -1,6 +1,6 @@
 // data: array of trainee ids to be added into the Trainee field
 // function selects trainees in Trainee Select2 field.
-let addTrainees = (trainee_ids) => {
+window.addTrainees = (trainee_ids) => {
   var curr = ($('#id_trainees').val());
   if (curr) {
     trainee_ids = [...new Set([...curr, ...trainee_ids])];
@@ -142,7 +142,7 @@ $(document).ready(function() {
         }
       }
       if (intersect.length!==0) {
-        addTrainees(intersect.reduce((arr1,arr2) => arr1.filter(x => new Set(arr2).has(x))));
+        window.addTrainees(intersect.reduce((arr1,arr2) => arr1.filter(x => new Set(arr2).has(x))));
       }
     });
 

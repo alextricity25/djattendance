@@ -97,7 +97,7 @@
         {% for session in sessions %}
           <td>
             {% if session.is_graded %}
-              {{ session.grade }}
+              {{ session.grade }} / {{ session.exam.total_score }}
             {% elif session.is_submitted_online %}
               {{ session.grade }}
               <a href="{% url 'exams:grade' session.id %}">Grade Exam</a>

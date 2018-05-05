@@ -81,7 +81,7 @@ def generate_menu(context):
           SubMenuItem(name='Manage Exams', permission='exams.add_exam', url='exams:manage', condition=user.has_group(['exam_graders', 'training_assistant'])),
       ],
       trainee_only=[
-        #SubMenuItem(name="View Graded Exams", url='exams:taken', condition=context['exams_taken']),
+        SubMenuItem(name="View Graded Exams", url='exams:taken', condition=context['exams_taken']),
       ]
 
   )

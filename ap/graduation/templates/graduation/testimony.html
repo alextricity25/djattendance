@@ -9,24 +9,21 @@
 {{ form.media }}
 
 <script type="text/javascript">
-  function updateCountdown() {
+  function updateCountdown_limitCount() {
     display = $(this).parent().children(".remaining_words")
     var word_count = 0
 
     if ($(this).val().trim()) {
       word_count = $(this).val().trim().split(" ").length;
     }
-
     $(display).text(word_count + ' words.');
 
-  }
-
-  function limitCount() {
     word_limit = parseInt($(this).prop('class').split(" ")[1])
-    if ($(this).val().trim().split(" ").length > word_limit) {
+    if (word_count > word_limit) {
       alert("You've hit the word limit!")
       $(this).val($(this).val().split(" ", word_limit).join(" ") + " ")
     }
+
   }
 
   $( document ).ready(() => {
@@ -34,13 +31,9 @@
     $('#id_grad_form *').attr("disabled", true);
     {% endif %}
 
-    $('.word_count').each(updateCountdown);
-    $('.word_count').change(updateCountdown);
-    $('.word_count').keyup(updateCountdown);
-
-    $('.word_count').each(limitCount);
-    $('.word_count').change(limitCount);
-    $('.word_count').keyup(limitCount);
+    $('.word_count').each(updateCountdown_limitCount);
+    $('.word_count').change(updateCountdown_limitCount);
+    $('.word_count').keyup(updateCountdown_limitCount);
 
   });
 </script>

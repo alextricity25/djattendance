@@ -7,7 +7,7 @@ import { startOfWeek, endOfWeek, differenceInWeeks, addDays, getDay }from 'date-
 //set manipulations used to do array computations quickly & easily from https://www.npmjs.com/package/set-manipulator
 import { union, intersection, difference, complement, equals } from 'set-manipulator';
 
-import { lastLeaveslip, compareEvents, categorizeEventStatus, getPeriodFromDate } from '../constants'
+import { lastLeaveslip, compareEvents, categorizeEventStatus, getPeriodFromDate, SLIP_STATUS_RANKINGS } from '../constants'
 
 //defining base states
 const form = (state) => state.form
@@ -98,6 +98,11 @@ export const getESRforWeek = createSelector(
       leaveslips.forEach((slip) => {
         slip.events.some((ev) => {
           if(ev.id == event.id && ev.date == event.start_datetime.split("T")[0]) {
+            if (a.event.hasOwnProperty("slip")) {
+              if (SLIP_STATUS_RANKINGS[a.event.slip.status] <= SLIP_STATUS_RANKINGS[slip.status]) {
+                return true;
+              }
+            }
             a.event.slip = {...slip}
             return true;
           }
@@ -108,6 +113,11 @@ export const getESRforWeek = createSelector(
       groupslips.some((gsl) => {
         if ((gsl.start < event.end_datetime && gsl.end > event.start_datetime) ||
             (event.start_datetime == event.end_datetime && gsl.start <= event.end_datetime && gsl.end >= event.start_datetime)) {
+          if (a.event.hasOwnProperty("gslip")) {
+            if (SLIP_STATUS_RANKINGS[a.event.gslip.status] <= SLIP_STATUS_RANKINGS[gslip.status]) {
+              return true;
+            }
+          }
           a.event.gslip = {...gsl};
           return true;
         }

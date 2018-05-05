@@ -119,13 +119,13 @@ class XBApplication(models.Model):
 
   degree2 = models.CharField(max_length=100, null=True, blank=True)
 
-  date_saved = models.DateField(null=True, blank=True)
+  date_saved = models.CharField(max_length=10, null=True, blank=True)
 
-  date_baptized = models.DateField(null=True, blank=True)
+  date_baptized = models.CharField(max_length=10, null=True, blank=True)
 
   first_church = models.CharField(max_length=150, null=True, blank=True)
 
-  first_church_date = models.DateField(null=True, blank=True)
+  first_church_date = models.CharField(max_length=10, null=True, blank=True)
 
   ftta_service = models.CharField(max_length=300, null=True, blank=True)
 
@@ -190,7 +190,7 @@ class XBApplication(models.Model):
 
   @property
   def name_of_model(self):
-    return self.__class__.__name__
+    return "XB Application"
 
   def menu_title(self):
     return "XB Application"

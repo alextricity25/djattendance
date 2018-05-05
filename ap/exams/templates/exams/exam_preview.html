@@ -32,8 +32,8 @@
               </br>
               You must answer at least {{ section.required_number_to_submit }} questions for this section in order to submit the exam.
               </br>
-              Matching Options:
               {% if section.section_type == 'Matching' %}
+                Matching Options:
                 <ol type="A">
                 {% for matching_answer in section.questions|get_matching_answers %}
                   <li> {{ matching_answer }} </li>

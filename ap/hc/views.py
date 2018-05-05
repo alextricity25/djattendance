@@ -173,7 +173,7 @@ def submit_hc_survey(request):
       'comment_forms': comment_forms,
       'button_label': "Submit",
       'page_title': "HC Survey",
-      'period': 1,
+      'period': hcsa.index,
       'house': house,
       'hc': hc,
       'read_only': read_only,

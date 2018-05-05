@@ -153,13 +153,24 @@ class Command(BaseCommand):
     for er in error_rolls:
       print str(er.id) + ' ' + str(er.trainee) + ' ' + str(er.event) + ' ' + str(er.date) + ' ' + str(er.submitted_by) + ' ' + str(er.status) + ' ' + str(er.last_modified)
 
+    print '\n'
     print '------------ For Attendanece Monitros ----------'
-    for am in AMs:
-      print am
-      for r in [r for r in bad_rolls if r.submitted_by==am]:
+    print '------------ mislink rolls ----------'
+    am_reconcile = [r.trainee for r in bad_rolls if r.status != 'P' and r.submitted_by in AMs]
+    for t in list(set(am_reconcile)):
+      print t
+      for r in [r for r in bad_rolls if r.trainee == t]:
         print "Roll ID", r.id, r, "submitted by", r.submitted_by, "on", r.last_modified
 
       print '\n'
+    print '\n\n'
+    other_rolls = [r for r in bad_rolls if r not in am_reconcile]
+    for t in list(set([r.trainee for r in other_rolls])):
+      print t 
+      for r in [r for r in other_rolls if r.trainee == t]:
+        print "Roll ID", r.id, r, "submitted by", r.submitted_by, "on", r.last_modified
+
+
 
   file_name = '../ghost_rolls' + RIGHT_NOW + '.txt'
 
@@ -172,6 +183,7 @@ class Command(BaseCommand):
     output2 = 'For Roll {0}: Possible Slip: {1} [ID: {2}]\n'
     ghost_rolls = []
     self_inputted = []
+    am_inputted = []
 
 
     def find_possible_slips(roll):
@@ -193,11 +205,27 @@ class Command(BaseCommand):
           if r.submitted_by in AMs:
             am_inputted.append(r)
 
-            except Exception as e:
+      except Exception as e:
         print output.format(r.id, e, r.submitted_by)
     print 'ghost rolls: ' + str(len(ghost_rolls))
     print 'self inputted rolls: ' + str(len(self_inputted))
     print 'attendance monitor inputted rolls: ' + str(len(am_inputted))
+
+    print '\n'
+    print '------------ For Attendanece Monitros ----------'
+    print '------------ ghost rolls ----------'
+    for t in list(set(AMs)):
+      print t
+      for r in [r for r in am_inputted if r.submitted_by == t]:
+        print "Roll ID", r.id, r, "submitted by", r.submitted_by, "on", r.last_modified
+
+      print '\n'
+    print '\n\n'
+    for t in list(set([r.trainee for r in ghost_rolls if r not in am_inputted])):
+      print t 
+      for r in [r for r in ghost_rolls if r.trainee == t and r not in am_inputted]:
+        print "Roll ID", r.id, r, "submitted by", r.submitted_by, "on", r.last_modified
+
   file_name = '../mislink_leaveslips' + RIGHT_NOW + '.txt'
 
   # @open_file(file_name)
@@ -257,7 +285,7 @@ class Command(BaseCommand):
           three_rolls.append(dup)
 
       if invalid_duplicates:
-        print t.full_name2
+        print t
         trainees_with_duplicates.append(t)
         for qs in duplicate_rolls:
           for r in qs:
@@ -272,6 +300,18 @@ class Command(BaseCommand):
     print 'two rolls both submitted by attendance monitors: ' + str(len(two_am_rolls))
     print 'three rolls: ' + str(len(three_rolls))
     print 'trainees duplicate rolls: ' + str(len(trainees_with_duplicates))
+
+    counter = 0
+    print '\n'
+    print '------------ For Attendanece Monitros ----------'
+    print '------------ invalid duplicate rolls ----------'
+    for am in AMs:
+      for r in [qs.all() for qs in two_rolls if qs.filter(submitted_by).exist()]:
+        print output.format(str(r.id), r, r.submitted_by, r.last_modified)
+        coutner += 1
+      print '\n'
+
+    print 'AM fixes qs: ' + str(counter)
 
   def handle(self, *args, **options):
     allcmd = False

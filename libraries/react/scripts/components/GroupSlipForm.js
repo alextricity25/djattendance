@@ -19,7 +19,7 @@ import SubmitButton from './SubmitButton'
 
 Form.addInputTypes(types)
 
-addTrainees = (trainee_ids) => {
+window.addTrainees = (trainee_ids) => {
   let prev_trainees = store.getState().form.groupSlip.trainees.filter((t) => trainee_ids.indexOf(t.id) < 0).map((t) => t.id);
   trainee_ids += prev_trainees;
   let trainees = store.getState().trainees.filter((t) => trainee_ids.indexOf(t.id) >= 0);
