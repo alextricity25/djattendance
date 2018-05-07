@@ -61,13 +61,13 @@ class InterimIntentions(models.Model):
 
   home_locality = models.CharField(max_length=50, blank=True)
 
-  home_address = models.CharField(max_length=50, blank=True)
+  home_address = models.CharField(max_length=50, blank=True, null=True)
 
-  home_city = models.CharField(max_length=50, blank=True)
+  home_city = models.CharField(max_length=50, blank=True, null=True)
 
-  home_state = models.CharField(max_length=50, blank=True)
+  home_state = models.CharField(max_length=50, blank=True, null=True)
 
-  home_zip = models.CharField(max_length=50, blank=True)
+  home_zip = models.CharField(max_length=50, blank=True,  null=True)
 
   intent = models.CharField(max_length=1, choices=INTENT_CHOICES, default="R")
 

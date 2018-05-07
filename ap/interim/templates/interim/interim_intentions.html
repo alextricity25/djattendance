@@ -30,7 +30,13 @@
 </style>
 
 <script type="text/javascript">
-
+var dt_options = {
+  timepicker: false,
+  format: 'm/d/Y',
+  formatDate: 'm/d/y',
+  defaultSelect: true,
+};
+var options = {year: 'numeric', month: '2-digit', day: '2-digit' };
 
 $(document).ready(() => {
 
@@ -38,7 +44,7 @@ $(document).ready(() => {
   
   show_hide_post_interim();
 
-  $('.datepicker').datepicker();
+  $('#id_end').datetimepicker(dt_options);
 
   $("#add_row").click(add_row);
 
@@ -50,7 +56,7 @@ $(document).ready(() => {
     $("#id_start").val(interim_start);
     let dt = new Date(interim_start);
     dt.setDate(dt.getDate() + 1);
-    $("#id_end").val(dt.toLocaleDateString());
+    $("#id_end").val(dt.toLocaleDateString('en-US', options));
   }
   $("[name='start']").prop( "readonly", true );
   $("[name='start']").addClass('readonly');
@@ -81,9 +87,11 @@ function show_hide_post_interim(){
       val++;
       $("#id_itinerary_table tr:last").attr("id","row_" + val);
       dt.setDate(dt.getDate() + 1);
-      $("#id_itinerary_table tr:last #id_start").val(dt.toLocaleDateString());
+      $("#id_itinerary_table tr:last #id_start").val(dt.toLocaleDateString('en-US', options));
       dt.setDate(dt.getDate() + 1);
-      $("#id_itinerary_table tr:last #id_end").val(dt.toLocaleDateString());
+      $("#id_itinerary_table tr:last #id_end").val(dt.toLocaleDateString('en-US', options));
+      $($("#id_itinerary_table tr:last > td > input")[1]).datetimepicker(dt_options)
+
     } else {
       new Notification(Notification.SUCCESS, 'Please fill out an end time before adding another row.').show();
     }
