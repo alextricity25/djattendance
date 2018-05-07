@@ -67,7 +67,7 @@ class InterimIntentions(models.Model):
 
   home_state = models.CharField(max_length=50, blank=True, null=True)
 
-  home_zip = models.CharField(max_length=50, blank=True,  null=True)
+  home_zip = models.CharField(max_length=50, blank=True, null=True)
 
   intent = models.CharField(max_length=1, choices=INTENT_CHOICES, default="R")
 

@@ -1,5 +1,7 @@
+from django.views.generic.base import TemplateView
 from django.views.generic.edit import UpdateView
 
+from accounts.models import Trainee
 from aputils.trainee_utils import trainee_from_user
 from interim.models import InterimIntentions, InterimItinerary, InterimIntentionsAdmin
 from interim.forms import InterimIntentionsForm, InterimItineraryForm, InterimIntentionsAdminForm
@@ -100,4 +102,34 @@ class InterimIntentionsAdminView(UpdateView, GroupRequiredMixin):
     ctx = super(InterimIntentionsAdminView, self).get_context_data(**kwargs)
     ctx['page_title'] = "Interim Intentions Admin"
     ctx['button_label'] = 'Save'
+    return ctx
+
+
+class InterimIntentionsTAView(TemplateView, GroupRequiredMixin):
+  template_name = 'interim/interim_intentions_ta_view.html'
+  group_required = ['training_assistant']
+
+  def get_context_data(self, **kwargs):
+    ctx = super(InterimIntentionsTAView, self).get_context_data(**kwargs)
+    term = Term.current_term()
+
+    def merge_entries(d, key1, key2, newkey, sep=' '):
+      try:
+        d[newkey] = unicode(d[key1]) + unicode(sep) + unicode(d[key2])
+        del d[key1]
+        del d[key2]
+        return 1
+      except KeyError:
+        return 0
+
+    trainees = Trainee.objects.values('firstname', 'lastname', 'current_term',
+                                      'team__name', 'locality__city__name',
+                                      'locality__city__state', 'id')
+    for t in trainees:
+      t['intention'] = InterimIntentions.objects.filter(trainee__id=t['id'], admin__term=term).first()
+      merge_entries(t, 'locality__city__name', 'locality__city__state', 'locality', sep=', ')
+      merge_entries(t, 'firstname', 'lastname', 'name')
+
+    ctx['trainees'] = trainees
+    ctx['page_title'] = 'Interim Intentions Report'
     return ctx
