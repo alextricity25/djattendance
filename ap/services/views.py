@@ -11,6 +11,7 @@ from django.template.defaulttags import register
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, F
 from django.contrib import messages
 from braces.views import GroupRequiredMixin
@@ -757,7 +758,7 @@ class ServiceHours(GroupRequiredMixin, UpdateView):
     try:
       self.week = self.kwargs['week']
     except KeyError:
-      self.week = self.week = term.term_week_of_date(datetime.now().date())
+      self.week = term.term_week_of_date(datetime.now().date())
 
     # get service
     try:
@@ -817,34 +818,41 @@ class ServiceHoursTAView(GroupRequiredMixin, TemplateView):
     context = super(ServiceHoursTAView, self).get_context_data(**kwargs)
     term = Term.current_term()
     week = 0
-    try:
-      week = self.kwargs['week']
-    except KeyError:
-      week = term.term_week_of_date(datetime.now().date())
-    context['designated_services'] = self.get_services_dict(term, week)
+    designated_services = Service.objects.filter(category__name__icontains='designated')  # designates services
+    week = self.request.GET.get('week', term.term_week_of_date(datetime.now().date()))
+    services = self.request.GET.getlist('services', [])
+    if services:
+      if -1 not in services:
+        designated_services = designated_services.filter(id__in=services)
+    else:
+      designated_services = designated_services.filter(id=designated_services.first().id)
+    context['designated_services'] = self.get_services_dict(term, week, designated_services)
     context['week_range'] = [str(i) for i in range(20)]
     context['weekinit'] = str(week)
     context['page_title'] = "Service Hours Report"
+    context['services_qs'] = Service.objects.filter(category__name__icontains='designated')
     return context
 
-  def get_services_dict(self, term, week):
+  def get_services_dict(self, term, week, service_ids=[]):
+    designated_services = Service.objects.filter(category__name__icontains='designated')  # designates services
     services = []
-    for assign in Assignment.objects.filter(service__designated=True):
+    if service_ids:
+      designated_services = designated_services.filter(id__in=service_ids)
+    for ds in designated_services:
       workers = []
-      for worker in assign.workers.all():
-          try:
-            serv_att = worker.serviceattendance_set.get(term=term, week=week, designated_service=assign.service)
-            workers.append({
-              'full_name': worker.full_name,
-              'id': worker.id,
-              'service_attendance': serv_att.__dict__,
-              'service_rolls': serv_att.serviceroll_set.values()
-            })
-          except ServiceAttendance.DoesNotExist:
-            pass
+      worker_ids = ds.assignments.values_list('workers', flat=True).distinct('workers')
+      for worker in Worker.objects.filter(id__in=worker_ids):  # filter out None values
+        try:
+          serv_att = worker.serviceattendance_set.get(term=term, week=week, designated_service=ds)
+          workers.append({
+            'full_name': worker.full_name,
+            'service_rolls': serv_att.serviceroll_set.order_by('start_datetime').values(),
+            'total_hours': serv_att.get_service_hours()
+          })
+        except ObjectDoesNotExist:
+          continue
       services.append({
-        'name': assign.service.name,
-        'id': assign.service.id,
+        'name': ds.name,
         'workers': workers
       })
     return services
@@ -858,18 +866,24 @@ class DesignatedServiceViewer(GroupRequiredMixin, TemplateView):
     context = super(DesignatedServiceViewer, self).get_context_data(**kwargs)
     designated_services = Service.objects.filter(designated=True)
     services = []
+    for w in Worker.objects.all().values('id', 'trainee__firstname', 'trainee__lastname', 'trainee__gender', 'trainee__current_term', 'trainee__team__type'):
+      services.append({
+          'worker': w,
+          'service_name': '',
+
+      })
+
     for s in designated_services:
-      workers = []
       for wg in s.worker_groups.all():
         for w in wg.workers.all():
-          if w not in workers:
-            workers.append(w)
-      services.append({
-          'name': s.name,
-          'workers': workers
-      })
+          dic = [x for x in services if x['worker']['id'] == w.id][0]
+          if dic['service_name']:
+            dic['service_name'] = dic['service_name'] + ", " + s.name
+          else:
+            dic['service_name'] = s.name
+
     context['designated_services'] = services
-    context['page_title'] = "Designated Service Viewer"
+    context['page_title'] = "Designated Service Trainees"
     return context
 
 

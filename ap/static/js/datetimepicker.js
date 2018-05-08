@@ -1,5 +1,5 @@
 $(document).ready(function() {
   $('.datetimepicker').datetimepicker({
-    format:'m/d/Y H:i'
+    format:'m/d/Y h:i a'
   });
 });

@@ -98,8 +98,9 @@ def generate_cards(context):
             CardLink(title="HC Forms", url=reverse('hc:hc-admin')),
             CardLink(title="Graduation", url=reverse('graduation:grad-admin')),
             CardLink(title="Trainee Information", url=reverse('trainee_information')),
-            CardLink(title="Desginated Services Viewer", url=reverse('services:designated_services_viewer')),
-            CardLink(title="Interim Intetions", url=reverse('interim:interim_intentions_admin')),
+            CardLink(title="Designated Services Trainees", url=reverse('services:designated_services_viewer')),
+            CardLink(title="Designated Services Hours", url=reverse('services:service_hours_ta_view')),
+          CardLink(title="Interim Intetions", url=reverse('interim:interim_intentions_admin')),
         ]
     )
 
