@@ -66,7 +66,8 @@
 
     $('[data-toggle="tooltip"]').tooltip();
 
-    ajaxify($('.modify-status'), function(element) {
+    ajaxify($('.modify-status'), function(element, data) {
+      new Notification(Notification.SUCCESS, $(data).find('.announce__title').html()).show();
       var row = $(element).parentsUntil("tbody")
       var id = row[row.length-1].id.split("-")[0]
       row.fadeOut(1000, function() {
@@ -76,14 +77,12 @@
         }
       });
     });
-  });
 
-  $(document).ready(function(){
     $("#checkall").click(function () {
         if ($("#checkall").is(':checked')) {
           $("#display_leaveslips .leaveslip-row").each(function () {
             select($(this), bulkSelect);
-          }); 
+          });
         } else {
           $("#display_leaveslips .leaveslip-row").each(function () {
             deselect($(this), bulkSelect);
@@ -155,7 +154,7 @@
 {% block content %}
 
 <h1>TA Leave Slips List</h1>
-
+<a id="ajax-redirect" href="{% url 'leaveslips:ta-leaveslip-list' %}"></a>
 <!-- Select box for view leave slips for TA -->
 <div class="row">
   <div class="col-md-12">
@@ -178,7 +177,7 @@
         <div class="col-md-2">
           <span>Filter by status: </span>
         </div>
-      
+
         <div class="col-md-10">
           <select id="leaveslip_status" name="leaveslip_status" style="margin-right: 10px;">
             <option {% if selected_status == -1 %}selected="selected"{% endif %} value="-1">All</option>
@@ -250,21 +249,7 @@
             <td>{{leaveslip.description|truncatechars:100}}</td>
             <td>{{leaveslip.get_status_display}}</td>
             <td>
-              {% if leaveslip.status == 'S'%}
-                <span class="label label-info">{{leaveslip.get_status_display}}</span>
-              {% endif %}
-              {% if leaveslip.status == 'F'%}
-                <span class="label label-warning">{{leaveslip.get_status_display}}</span>
-              {% endif %}
-              {% if leaveslip.texted %}
-                <span class="label label-primary">Texted Attendance Number</span>
-              {% endif %}
-              {% if leaveslip.informed %}
-                <span class="label label-default">Informed TA</span>
-              {% endif %}
-              {% if leaveslip.late == True %}
-                <span class="label label-danger">Submitted Late</span>
-              {% endif %}
+              {% include "leaveslips/_ta_labels.html" %}
             </td>
             <td>
               {% include 'leaveslips/_ta_actions.html' %}

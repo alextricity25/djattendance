@@ -100,7 +100,7 @@ class AudioFile(models.Model):
     elif code == 'HC':
       fellowship_code = trainee.groups.filter(name='HC').exists()
     elif code == '4T':
-      fellowship_code = trainee.current_term = 4
+      fellowship_code = trainee.current_term == 4
     elif code == 'PS':
       fellowship_code = trainee.groups.filter(name='PSRP_facilitator').exists()
     else:

@@ -330,6 +330,9 @@ def get_exam_context_data(context, exam, is_available, session, role, include_an
     context['exam_available'] = False
   else:
     context['exam_available'] = True
+  #check if exam is available
+  if hasattr(session, 'trainee') and not exam.is_open:
+    context['exam_available'] = makeup_available(exam, session.trainee)
   questions = get_exam_questions(exam, include_answers)
   responses = get_responses(exam, session)
   score_for_responses = get_responses_score(exam, session)

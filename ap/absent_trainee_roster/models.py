@@ -21,6 +21,7 @@ ENTRY
 
 """
 
+
 class Absentee(Trainee):
   class Meta:
     proxy = True
@@ -92,4 +93,4 @@ class Entry(models.Model):
     unique_together = ('roster', 'absentee',)
 
   def __unicode__(self):
-    return '%s - %s' % (self.absentee.name, self.roster)
+    return '%s - %s' % (self.absentee.full_name, self.roster)

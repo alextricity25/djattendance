@@ -76,7 +76,6 @@ class WeekSchedule(models.Model):
     week_end = self.start + timedelta(days=6)
     return (week_start, week_end)
 
-
   @staticmethod
   def latest_week_schedule():
     return WeekSchedule.objects.latest('start')

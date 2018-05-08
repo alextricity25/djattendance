@@ -26,8 +26,8 @@ LAST_WEEK = 19
 SPRING = 'Spring'
 FALL = 'Fall'
 
-class Term(models.Model):
 
+class Term(models.Model):
   class Meta:
     ordering = ['year', '-season']
 

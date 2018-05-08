@@ -81,9 +81,8 @@ class Worker(models.Model):
     if not hasattr(self, '_service_freq'):
       self._services_freq = Counter()
       # limit history frequency to last 3 weeks (fading window that forgets)
-      for a in self.assignments.all()[:3]:
-        self._services_freq[a.service_slot.id] += 1
-
+      for a in self.assignments.all()[:10]:
+        self._services_freq[a.service.category] += 1
     return self._services_freq
 
   # This is very inefficient. ...
