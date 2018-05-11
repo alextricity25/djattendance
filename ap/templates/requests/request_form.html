@@ -22,9 +22,11 @@
 	    {% bootstrap_form form %}
 
 	    {% buttons %}
-	    <button type="submit" class="btn btn-primary">
-	      Submit
-	    </button>
+        {% if not read_only %}
+  	    <button type="submit" class="btn btn-primary">
+  	      Submit
+  	    </button>
+        {% endif%}
 	    {% endbuttons %}
 	  </form>
     {% block extra_form_elements %}
