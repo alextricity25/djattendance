@@ -120,11 +120,17 @@ class ExamTemplateListView(ListView):
             if exam.training_class.class_type == 'MAIN' or exam.training_class.class_type == '2YR' or exam.training_class.class_type == 'AFTN':
               exams.append(exam)
     makeup = Makeup.objects.filter(trainee=user)
+    #all makeup exams should be open
+    makeup_exams = []
+    for makeup_exam in makeup:
+      exams.append(makeup_exam.exam)
+      makeup_exams.append(makeup_exam.exam)
     exams = list(exams)
     # TODO - Fix this. to show makeup
     for exam in exams:
       exam.visible = exam.is_open and trainee_can_take_exam(user, exam)
-
+      if exam in makeup_exams:
+        exam.visible = True
       # Don't show to exam service manage page
       if not is_manage and not exam.visible:
         exams.remove(exam)
@@ -159,6 +165,9 @@ class SingleExamGradesListView(GroupRequiredMixin, TemplateView):
     context['exam'] = exam
 
     trainees = Trainee.objects.all().order_by('lastname')
+
+    #delete all sessions without exam or trainee
+    (Session.objects.filter(trainee=None) | Session.objects.filter(exam=None)).delete()
 
     if exam.training_class.class_type == '1YR':
       trainees = trainees.filter(current_term__lte=2)
@@ -196,6 +205,14 @@ class SingleExamGradesListView(GroupRequiredMixin, TemplateView):
         trainee = Trainee.objects.get(id=trainee_id)
         exam = Exam.objects.get(pk=self.kwargs['pk'])
         Makeup.objects.get_or_create(trainee=trainee, exam=exam)
+        
+        #need code to create session
+        try:
+          session = Session.objects.get(trainee=trainee, exam=exam)
+          session.delete()
+        except Session.DoesNotExist:
+          pass
+        Session.objects.get_or_create(trainee=trainee, exam=exam)
       except Trainee.DoesNotExist:
         pass
     elif 'close-makeup-trainee-id' in P:
@@ -271,6 +288,9 @@ class GenerateGradeReports(GroupRequiredMixin, TemplateView):
     trainees = self.request.POST.getlist('trainee') if 'trainee' in self.request.POST else None
     initial = {}
 
+    #delete all sessions without exam or trainee
+    (Session.objects.filter(trainee=None) | Session.objects.filter(exam=None)).delete()
+
     if pk:
       sessions = Session.objects.filter(exam__pk=pk)
       initial['exam'] = pk
@@ -298,6 +318,10 @@ class GenerateOverview(GroupRequiredMixin, TemplateView):
     exam = Exam.objects.get(pk=self.kwargs['pk'])
     context['exam'] = exam
     context.update(exam.statistics())
+
+    #delete all sessions without exam or trainee
+    (Session.objects.filter(trainee=None) | Session.objects.filter(exam=None)).delete()
+
     try:
       context['sessions'] = Session.objects.filter(exam=exam).order_by('trainee__lastname')
     except Session.DoesNotExist:

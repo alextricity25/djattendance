@@ -113,7 +113,8 @@ def generate_menu(context):
       ],
       ta_only=[
           SubMenuItem(name='Daily Announcements', url='announcements:announcement-list'),
-          SubMenuItem(name='Designated Services Viewer', url='services:designated_services_viewer')
+          SubMenuItem(name='Designated Services Trainees', url='services:designated_services_viewer'),
+          SubMenuItem(name='Designated Services Hours', url='services:service_hours_ta_view'),
           # SubMenuItem(name='HC Forms Admin', url='hc:hc-admin'),
           # SubMenuItem(name='Manage Custom Forms', url='fobi.dashboard')
       ],
@@ -154,6 +155,7 @@ def generate_menu(context):
       name='Current',
       trainee_only=[
           SubMenuItem(name="Take Exam", url='exams:list', condition=context['exams_available']),
+          SubMenuItem(name='Interim intentions', url='interim:interim_intentions', condition=context['interim_intentions_available']),
       ] + [SubMenuItem(name=pf.name, url='/forms/view/' + pf.slug) for pf in user_forms(user)],
   )
 

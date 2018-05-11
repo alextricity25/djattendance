@@ -16,7 +16,7 @@
     $('.hidden-input').hide();
 
     let href = '';
-    $('.save-first').click((e) => {
+    $('.modify-status').click((e) => {
       e.preventDefault();
       href = e.currentTarget.href;
       $('form').submit();
@@ -33,11 +33,20 @@
         type: "POST",
         data: form.serialize(),
         success: (data) => {
-          if (href) {
-            ajaxWithMessage(href);
-          } else {
+          if (!href) {
             new Notification(Notification.SUCCESS, 'Saved').show();
+            return;
           }
+          $.ajax({
+            url: href,
+            type: "GET",
+            success: (data) => {
+              let page = $(data);
+              let redirect = page.find('#ajax-redirect').attr('href');
+              new Notification(Notification.SUCCESS, page.find('.announce__title').html()).show();
+              window.location.href = redirect;
+            }
+          });
         },
         error: (jXHR, textStatus, errorThrown) => {
           alert(errorThrown);
@@ -55,6 +64,7 @@
 {% block content %}
   <h2>TA {{leaveslip.classname|title}} Slip View</h2>
   <p>Leaveslip ID: <a id="ajax-redirect" {% block ls-link %}{% endblock %}>{{leaveslip.id}}</a></p>
+  {% include "leaveslips/_ta_labels.html" %}
   <form action="{{leaveslip.get_ta_update_url}}" method="post">
     {% csrf_token %}
     <div class="row">

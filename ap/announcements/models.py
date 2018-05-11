@@ -41,7 +41,10 @@ class Announcement(models.Model, RequestMixin):
   all_trainees = models.BooleanField(default=True)
 
   def __unicode__(self):
-    return '<Announcement %s> by %s' % (self.announcement, self.author)
+    try:
+      return '<Announcement %s> by %s' % (self.announcement, self.author)
+    except AttributeError as e:
+      return str(self.id) + ": " + str(e)
 
   @staticmethod
   def announcements_for_today(trainee, is_popup=False):

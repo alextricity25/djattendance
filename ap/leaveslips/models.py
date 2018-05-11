@@ -118,7 +118,10 @@ class LeaveSlip(models.Model, RequestMixin):
       Roll.objects.filter(id=roll.id).delete()
 
   def __unicode__(self):
-    return "[%s] %s - %s" % (self.submitted.strftime('%m/%d'), self.type, self.trainee)
+    try:
+      return "[%s] %s - %s" % (self.submitted.strftime('%m/%d'), self.type, self.trainee)
+    except AttributeError as e:
+      return str(self.id) + ": " + str(e)
 
 
 class IndividualSlipManager(models.Manager):
@@ -197,6 +200,12 @@ class IndividualSlip(LeaveSlip):
   def get_update_url(self):
     return reverse('leaveslips:individual-update', kwargs={'pk': self.id})
 
+  def get_admin_url(self):
+    return reverse('leaveslips:admin-islip', kwargs={'pk': self.id})
+
+  def get_delete_url(self):
+    return reverse('leaveslips:admin-islip-delete', kwargs={'pk': self.id})
+
 
 class GroupSlipManager(models.Manager):
 
@@ -257,3 +266,9 @@ class GroupSlip(LeaveSlip):
 
   def get_absolute_url(self):
     return reverse('leaveslips:group-update', kwargs={'pk': self.id})
+
+  def get_admin_url(self):
+    return reverse('leaveslips:admin-gslip', kwargs={'pk': self.id})
+
+  def get_delete_url(self):
+    return reverse('leaveslips:admin-gslip-delete', kwargs={'pk': self.id})

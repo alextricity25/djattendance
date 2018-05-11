@@ -24,6 +24,7 @@ class AudioRequestForm(forms.ModelForm):
     super(AudioRequestForm, self).__init__(*args, **kwargs)
     sorted_files = order_audio_files(AudioFile.objects.filter_term(Term.current_term()))
     choices = [(a.id, a.get_full_name()) for a in sorted_files]
+    self.fields['audio_requested'].widget.attrs['class'] = 'select-fk'
     self.fields['audio_requested'].choices = choices
     if not is_TA(self.user):
       self.fields['TA_comments'].disabled = True

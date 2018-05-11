@@ -76,7 +76,6 @@ class WeekSchedule(models.Model):
     week_end = self.start + timedelta(days=6)
     return (week_start, week_end)
 
-
   @staticmethod
   def latest_week_schedule():
     return WeekSchedule.objects.latest('start')
@@ -95,7 +94,10 @@ class WeekSchedule(models.Model):
         return None
 
   def __unicode__(self):
-    return 'Week Schedule - ' + str(self.start)
+    try:
+      return 'Week Schedule - ' + str(self.start)
+    except AttributeError as e:
+      return str(self.id) + ": " + str(e)
 
   @classmethod
   def create(cls, start, desc, period):

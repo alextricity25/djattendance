@@ -29,6 +29,7 @@ CLASS_CHOICES = (
     ('Character', 'Character'),
     ('PSRP', 'PSRP'),
     ('Presentations', 'Presentations'),
+    ('4th Term', 'T4'),
 )
 
 ELECTIVES = r''
