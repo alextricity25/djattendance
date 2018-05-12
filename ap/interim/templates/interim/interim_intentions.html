@@ -31,6 +31,7 @@
 {% block scripts %}
 {{ block.super }}
 {{ form.media }}
+{{ itinerary_forms.0.media }}
 
 <script type="text/javascript">
 
@@ -39,7 +40,7 @@ function date_formater(dt) {
   mon = date.slice(0, 2)
   dat = date.slice(3, 5)
   yer = date.slice(6, 10)
-  return yer + "-" + mon + "-" + dat
+  return mon + "/" + dat + "/" + yer
 }
 
 var dt_options = {
@@ -55,8 +56,6 @@ $(document).ready(() => {
   var interim_start = "{{interim_start|date:'m/d/Y'}}";
   
   show_hide_post_interim();
-
-  // $('.datepicker').datetimepicker(dt_options);
 
   $("#add_row").click(add_row);
 
