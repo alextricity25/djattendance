@@ -1,8 +1,8 @@
 $(document).ready(function() {
-  $('.datepicker').datetimepicker({
+  $(".datepicker").datetimepicker({
     timepicker: false,
-    format: 'm/d/Y',
-    formatDate: 'm/d/Y',
+    format: "m/d/Y",
+    formatDate: "m/d/Y",
     defaultSelect: true
   });
 });
