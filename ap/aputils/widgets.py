@@ -37,6 +37,19 @@ class DatetimePicker(DateTimeInput):
     )
 
 
+class TimePicker(DateTimeInput):
+  format = '%I:%M %p'
+
+  def __init__(self, *args, **kwargs):
+    kwargs['attrs'] = {'class': 'timepicker'}
+    super(TimePicker, self).__init__(*args, **kwargs)
+
+  class Media:
+    js = (
+        'js/timepicker.js',
+    )
+
+
 class MultipleSelectFullCalendar(SelectMultiple):
   def __init__(self, queryset, name, attrs=None, choices=()):
     self.queryset = queryset
