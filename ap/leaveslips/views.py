@@ -93,8 +93,8 @@ class TALeaveSlipList(GroupRequiredMixin, generic.TemplateView):
   def get_context_data(self, **kwargs):
     ctx = super(TALeaveSlipList, self).get_context_data(**kwargs)
 
-    individual = IndividualSlip.objects.all().order_by('status', 'rolls__date')
-    group = GroupSlip.objects.all().order_by('status', 'start')  # if trainee is in a group leave slip submitted by another user
+    individual = IndividualSlip.objects.all()
+    group = GroupSlip.objects.all()  # if trainee is in a group leave slip submitted by another user
 
     s, _ = Statistics.objects.get_or_create(trainee=self.request.user)
 
@@ -139,8 +139,8 @@ class TALeaveSlipList(GroupRequiredMixin, generic.TemplateView):
       group = group.filter(status=status) | sg_slips
 
     # Prefetch for performance
-    individual.select_related('trainee', 'TA', 'TA_informed').prefetch_related('rolls')
-    group.select_related('trainee', 'TA', 'TA_informed').prefetch_related('trainees')
+    individual.select_related('trainee', 'TA', 'TA_informed').prefetch_related('rolls').order_by('status', 'rolls__date')
+    group.select_related('trainee', 'TA', 'TA_informed').prefetch_related('trainees').order_by('status', 'start')
 
     ctx['TA_list'] = TrainingAssistant.objects.filter(groups__name='regular_training_assistant')
     ctx['leaveslips'] = chain(individual, group)  # combines two querysets
