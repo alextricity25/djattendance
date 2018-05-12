@@ -25,7 +25,7 @@ class DatePicker(DateInput):
 
 
 class DatetimePicker(DateTimeInput):
-  format = '%m/%d/%Y %H:%M'
+  format = '%m/%d/%Y %I:%M %p'
 
   def __init__(self, *args, **kwargs):
     kwargs['attrs'] = {'class': 'datetimepicker'}
