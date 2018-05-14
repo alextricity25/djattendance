@@ -76,12 +76,9 @@ def generate_panels(context):
       url=reverse('attendance:attendance-submit')
   )
 
-  # leaveslip calculation and period calculation are off by one
   ls_pending = 0
   ls_p = IndividualSlip.objects.filter(trainee=user, status='P')
-  for ls in ls_p:
-    if (p - 1) in ls.periods:
-      ls_pending += 1
+  ls_pending = sum([1 if p in slip.periods else 0 for slip in ls_p])
 
   leaveslips_panel = Panel(
       name='Leave Slips Pending',
