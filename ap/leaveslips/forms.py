@@ -3,8 +3,9 @@ from django import forms
 from accounts.widgets import TraineeSelect2MultipleInput
 from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 from .models import IndividualSlip, GroupSlip
-from accounts.models import Trainee
+from accounts.models import Trainee, User
 from services.models import Assignment
+from aputils.widgets import DatetimePicker
 
 
 class LeaveslipForm(forms.ModelForm):
@@ -38,7 +39,7 @@ class IndividualSlipForm(LeaveslipForm):
   class Meta:
     model = IndividualSlip
     fields = ['trainee', 'type', 'description', 'location', 'host_name', 'host_phone', 'hc_notified',
-              'private_TA_comments', 'comments', 'TA_informed', 'texted', 'TA']
+              'comments', 'TA_informed', 'texted', 'TA', 'private_TA_comments']
 
 
 class GroupSlipForm(LeaveslipForm):
@@ -53,7 +54,26 @@ class GroupSlipForm(LeaveslipForm):
 
   class Meta:
     model = GroupSlip
-    fields = ['trainees', 'type', 'description', 'private_TA_comments', 'comments', 'start', 'end', 'TA_informed', 'texted', 'TA']
+    fields = ['trainees', 'type', 'description', 'comments', 'start', 'end', 'TA_informed', 'texted', 'TA', 'private_TA_comments']
+
+
+class IndividualSlipAdminForm(forms.ModelForm):
+  def __init__(self, *args, **kwargs):
+    trainee = Trainee.objects.filter(groups__name='attendance_monitors').first()
+    if 'trainee' in kwargs:
+      trainee = kwargs.pop('trainee')
+    super(IndividualSlipAdminForm, self).__init__(*args, **kwargs)
+    self.fields['rolls'].queryset = trainee.rolls.all()
+    self.fields['TA'].queryset = User.objects.filter(groups__name='regular_training_assistant')
+    self.fields['TA_informed'].queryset = User.objects.filter(groups__name='regular_training_assistant')
+    self.fields['trainee'].widget.attrs['class'] = 'select-fk'
+    self.fields['TA'].widget.attrs['class'] = 'select-fk'
+    self.fields['TA_informed'].widget.attrs['class'] = 'select-fk'
+    self.fields['finalized'].widget = DatetimePicker()
+
+  class Meta:
+    model = IndividualSlip
+    fields = "__all__"
 
 
 class GroupSlipAdminForm(forms.ModelForm):
@@ -76,3 +96,13 @@ class GroupSlipAdminForm(forms.ModelForm):
 
   def __init__(self, *args, **kwargs):
     super(GroupSlipAdminForm, self).__init__(*args, **kwargs)
+    self.fields['trainee'].widget.attrs['class'] = 'select-fk'
+    self.fields['TA'].widget.attrs['class'] = 'select-fk'
+    self.fields['TA_informed'].widget.attrs['class'] = 'select-fk'
+    self.fields['finalized'].widget = DatetimePicker()
+    self.fields['start'].widget = DatetimePicker()
+    self.fields['end'].widget = DatetimePicker()
+
+  class Meta:
+    model = GroupSlip
+    fields = "__all__"

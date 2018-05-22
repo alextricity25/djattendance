@@ -110,15 +110,15 @@ export const getESRforWeek = createSelector(
         })
       });
       //if groupslip falls into range of event
-      groupslips.some((gsl) => {
-        if ((gsl.start < event.end_datetime && gsl.end > event.start_datetime) ||
-            (event.start_datetime == event.end_datetime && gsl.start <= event.end_datetime && gsl.end >= event.start_datetime)) {
+      groupslips.forEach((gslip) => {
+        if ((gslip.start < event.end_datetime && gslip.end > event.start_datetime) ||
+            (event.start_datetime == event.end_datetime && gslip.start <= event.end_datetime && gslip.end >= event.start_datetime)) {
           if (a.event.hasOwnProperty("gslip")) {
             if (SLIP_STATUS_RANKINGS[a.event.gslip.status] <= SLIP_STATUS_RANKINGS[gslip.status]) {
               return true;
             }
           }
-          a.event.gslip = {...gsl};
+          a.event.gslip = {...gslip};
           return true;
         }
         return false;

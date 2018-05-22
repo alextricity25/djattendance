@@ -108,7 +108,10 @@ class AudioFile(models.Model):
     return class_visible and fellowship_code
 
   def __unicode__(self):
-    return '<Audio File {0}>'.format(self.audio_file.name)
+    try:
+      return '<Audio File {0}>'.format(self.audio_file.name)
+    except AttributeError as e:
+      return str(self.id) + ": " + str(e)
 
   @property
   def code(self):

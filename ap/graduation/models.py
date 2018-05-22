@@ -45,7 +45,10 @@ class GradAdmin(models.Model):
   speaking_trainees = models.ManyToManyField(Trainee, blank=True)
 
   def __unicode__(self):
-    return "[Graduation] %s" % (self.term)
+    try:
+      return "[Graduation] %s" % (self.term)
+    except AttributeError as e:
+      return str(self.id) + ": " + str(e)
 
   def get_due_date_of(self, survey_name):
     DUE_DATE_OF = {
@@ -113,7 +116,10 @@ class Survey(models.Model):
     return len(filter(lambda o: o.responded, qset))
 
   def __unicode__(self):
-    return "[%s] %s - %s" % (self.name_of_model, self.due_date, self.show_status)
+    try:
+      return "[%s] %s - %s" % (self.name_of_model, self.due_date, self.show_status)
+    except AttributeError as e:
+      return str(self.id) + ": " + str(e)
 
   def menu_title(self):
     return self.name_of_model.title()

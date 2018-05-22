@@ -131,9 +131,9 @@ def generate_menu(context):
   )
 
   hc_forms = []
-  if hc_surveys():
+  if hc_surveys(user):
     hc_forms.append(SubMenuItem(name='HC Surveys', permission='hc.add_survey', url='hc:hc-survey', condition=user.has_group(['HC'])))
-  if hc_recommendations():
+  if hc_recommendations(user):
     hc_forms.append(SubMenuItem(name='HC Recommendations', permission='hc.add_recommendation', url='hc:hc-recommendation', condition=user.has_group(['HC'])))
 
   HC_menu = MenuItem(
