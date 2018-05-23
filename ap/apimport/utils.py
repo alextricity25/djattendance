@@ -407,6 +407,18 @@ def normalize_city(city, state, country):
   return best['name'], state_code, code
 
 
+def new_normalize_city(city, state, country):
+  addr = city + ", " + state + ", " + country
+  args = {'address': addr}
+  url = "http://maps.googleapis.com/maps/api/geocode/json?" + urlencode(args)
+  r = requests.get(url)
+  result = r.json()['results'][0]['address_components']
+  country_code = result[2]['short_name']
+  state_code = result[1]['short_name']
+  city_name = result[0]['long_name']
+  return country_code, state_code, city_name
+
+
 def countrycode_from_alpha3(code3):
   """Converts from a three-letter country code to a 2-letter country code if such a
      matching exists.
