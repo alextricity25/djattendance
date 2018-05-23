@@ -28,6 +28,9 @@ class AudioRequestForm(forms.ModelForm):
     self.fields['audio_requested'].choices = choices
     if not is_TA(self.user):
       self.fields['TA_comments'].disabled = True
+      if self.instance.id and self.instance.status in ['A', 'D']:
+        self.fields['trainee_comments'].disabled = True
+        self.fields['audio_requested'].disabled = True
 
 
 class AudioRequestTACommentForm(forms.ModelForm):

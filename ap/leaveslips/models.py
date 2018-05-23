@@ -8,6 +8,7 @@ from terms.models import Term
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from aputils.utils import RequestMixin
+from schedules.models import Schedule
 
 
 """ leave slips models.py
@@ -241,9 +242,11 @@ class GroupSlip(LeaveSlip):
   def get_date(self):
     return self.start.date()
 
+# checks for events in generic group calendar
   @property
   def events(self):
-    return self.get_trainee_requester().events_in_date_range(self.start, self.end)
+    return self.get_trainee_requester().events_in_date_range(self.start, self.end, 
+                                                             listOfSchedules=Schedule.objects.filter(trainee_select="GP"))
 
   @property
   def periods(self):

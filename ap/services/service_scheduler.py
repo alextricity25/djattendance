@@ -48,7 +48,7 @@ class ServiceScheduler(object):
         day_constraints[service.weekday].append(num_tasks)
         category_constraints[service.category].append(num_tasks)
         if "Prep" in service.category.name:
-          prep_constraints[service].append(num_tasks)
+          prep_constraints['Prep'].append(num_tasks)
         num_tasks += 1
     t.end()
     self.tasks = tasks

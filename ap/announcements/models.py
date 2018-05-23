@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from accounts.models import User, Trainee
 from aputils.utils import RequestMixin
 
+
 class Announcement(models.Model, RequestMixin):
 
   class Meta:

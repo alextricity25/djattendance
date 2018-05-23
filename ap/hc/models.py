@@ -39,7 +39,7 @@ class HCRecommendationAdmin(models.Model):
 
 class HCSurvey(models.Model):
 
-  survey_admin = models.ForeignKey(HCSurveyAdmin, null=True, blank=True, on_delete=models.SET_NULL)
+  survey_admin = models.ForeignKey(HCSurveyAdmin, null=True, blank=True, on_delete=models.CASCADE)
 
   # many-to-one: The house (has many surveys) this survey concerns
   house = models.ForeignKey(House, null=True, on_delete=models.SET_NULL)
@@ -55,6 +55,8 @@ class HCSurvey(models.Model):
 
   # general comments concerning the house
   comment = models.TextField(blank=True, null=True)
+
+  submitted = models.BooleanField(default=False)
 
   def __unicode__(self):
     try:
