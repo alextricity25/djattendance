@@ -302,6 +302,7 @@ def check_csvfile(file_path):
   with open(file_path, 'r') as f:
     reader = csv.DictReader(f)
     for row in reader:
+      print row
       # is this an empty row?
       if not row['stName']:
         continue
@@ -310,7 +311,7 @@ def check_csvfile(file_path):
       # localities share a city name.  Potential upcoming one: Vancouver, WA versus
       # Vancouver, BC
       if (not check_sending_locality(row['sendingLocality'])) and (row['sendingLocality'] not in localities):
-        city_norm, state_norm, country_norm = normalize_city(row['sendingLocality'], row['state'], row['country'])
+        city_norm, state_norm, country_norm = new_normalize_city(row['sendingLocality'], row['state'], row['country'])
 
         if fake:
           save_locality(city_norm, state_norm, country_norm)
@@ -409,13 +410,18 @@ def normalize_city(city, state, country):
 
 def new_normalize_city(city, state, country):
   addr = city + ", " + state + ", " + country
-  args = {'address': addr}
-  url = "http://maps.googleapis.com/maps/api/geocode/json?" + urlencode(args)
+  args = {'address': addr, 'key': 'AIzaSyBgKOBuWmQm1ion3F3BNdRUPLczEYn6O6I'}
+  url = "https://maps.googleapis.com/maps/api/geocode/json?" + urlencode(args)
   r = requests.get(url)
   result = r.json()['results'][0]['address_components']
-  country_code = result[2]['short_name']
-  state_code = result[1]['short_name']
-  city_name = result[0]['long_name']
+  if len(result) < 3:
+    country_code = result[0]['short_name']
+    state_code = result[0]['short_name']
+    city_name = result[0]['long_name']
+  else:
+    country_code = result[2]['short_name']
+    state_code = result[1]['short_name']
+    city_name = result[0]['long_name']
   return country_code, state_code, city_name
 
 
@@ -437,7 +443,7 @@ def import_address(address, city, state, zip, country):
   except Address.DoesNotExist:
     pass
 
-  city_norm, state_norm, country_norm = normalize_city(city, state, country)
+  city_norm, state_norm, country_norm = new_normalize_city(city, state, country)
 
   # TODO (import2): graceful fail if could not find best-->state_norm and country_norm are None
   if city_norm is None or country_norm is None:
