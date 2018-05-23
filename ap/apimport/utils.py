@@ -1,28 +1,27 @@
 import csv
-import requests
 import logging
 import os
 from datetime import date, datetime, time, timedelta
-from dateutil.relativedelta import relativedelta
 from urllib import urlencode
 
-from django.contrib.auth.models import Group
-from django.conf import settings  # for access to MEDIA_ROOT
-from django.contrib import messages
-from django_countries import countries
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
-
+import requests
 from accounts.models import TrainingAssistant, User, UserMeta
 from aputils.models import Address, City, Vehicle
+from aputils.trainee_utils import is_trainee
+from dateutil.relativedelta import relativedelta
+from django.conf import settings  # for access to MEDIA_ROOT
+from django.contrib import messages
+from django.contrib.auth.models import Group
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from django_countries import countries
 from houses.models import House
 from localities.models import Locality
+from schedules.models import Event, Schedule
+from seating.models import Chart, Partial
 from teams.models import Team
 from terms.models import Term
-from schedules.models import Schedule, Event
-from seating.models import Chart, Partial
 
-from aputils.trainee_utils import is_trainee
 # from schedules.utils import split_schedule
 
 log = logging.getLogger("apimport")
@@ -556,13 +555,13 @@ def import_row(row):
   # TODO: This needs to be done better, once we get more information about localities
   locality = Locality.objects.filter(city__name=row['sendingLocality']).first()
   if locality:
-    user.locality.add(locality)
+    user.locality = locality
   else:
     # Try to find a city that corresponds
     city = City.objects.filter(name=row['sendingLocality']).first()
     if city:
       locality, created = Locality.objects.get_or_create(city=city)
-      user.locality.add(locality)
+      user.locality = locality
     else:
       log.warning("Unable to set locality [%s] for trainee: %s %s" % (row['sendingLocality'], row['stName'], row['lastName']))
 

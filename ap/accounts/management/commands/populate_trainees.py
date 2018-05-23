@@ -20,9 +20,6 @@ def new_trainee(trainees=[], gen="B", ct=1):
     u = Trainee(email=email, firstname=fname, lastname=lname, gender=gen, type='R', date_of_birth=dob, current_term=ct, is_active=True, team=t, house=h, locality=l, self_attendance=sa)
     u.set_password(password)
     u.save()
-    u.locality.add(loc)
-    u.save()
-
 
 
 class Command(BaseCommand):
