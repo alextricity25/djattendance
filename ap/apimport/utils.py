@@ -301,7 +301,6 @@ def check_csvfile(file_path):
   with open(file_path, 'r') as f:
     reader = csv.DictReader(f)
     for row in reader:
-      print row
       # is this an empty row?
       if not row['stName']:
         continue
@@ -409,18 +408,56 @@ def normalize_city(city, state, country):
 
 def new_normalize_city(city, state, country):
   addr = city + ", " + state + ", " + country
-  args = {'address': addr, 'key': 'AIzaSyBgKOBuWmQm1ion3F3BNdRUPLczEYn6O6I'}
-  url = "https://maps.googleapis.com/maps/api/geocode/json?" + urlencode(args)
-  r = requests.get(url)
-  result = r.json()['results'][0]['address_components']
-  if len(result) < 3:
-    country_code = result[0]['short_name']
-    state_code = result[0]['short_name']
-    city_name = result[0]['long_name']
+  country_code = ""
+  state_code = ""
+  city_name = ""
+
+  if city.lower() == 'new york city':  # NYC is a very common problem
+    city_name = "New York City"
+    state_code = "NY"
+    country_code = "US"
   else:
-    country_code = result[2]['short_name']
-    state_code = result[1]['short_name']
-    city_name = result[0]['long_name']
+    args = {'address': addr, 'key': 'AIzaSyBgKOBuWmQm1ion3F3BNdRUPLczEYn6O6I'}
+    url = "https://maps.googleapis.com/maps/api/geocode/json?" + urlencode(args)
+    r = requests.get(url)
+    try:
+      result = r.json()['results'][0]['address_components']
+    except (IndexError, KeyError) as e:
+      log.warning("Unable to normalize city defined by " + city + ", " + state + ", " + country + ".")
+      log.warning("%s." % (e))
+      return country_code, state_code, city_name
+
+    if len(result) == 1:
+      country_code = result[0]['short_name']
+      state_code = result[0]['short_name']
+      city_name = result[0]['long_name']
+    else:
+      loc = ""
+      subloc = ""
+      for item in result:
+        if not country_code and 'country' in item['types']:
+          country_code = item['short_name']
+          continue
+
+        if not state_code and 'administrative_area_level_1' in item['types']:
+          state_code = item['short_name']
+          continue
+
+        if not loc and 'locality' in item['types']:
+          loc = item['long_name']
+          continue
+
+        if not subloc and 'sublocality' in item['types']:
+            subloc = item['short_name']
+
+      if subloc and not loc:
+        loc = subloc
+      city_name = loc
+  # Puerto Rico
+  if country_code == "PR":
+    state_code = "PR"
+    country_code = "US"
+
   return country_code, state_code, city_name
 
 
