@@ -229,6 +229,7 @@ class GroupSlip(LeaveSlip):
 
   class Meta:
     verbose_name = 'group slip'
+    ordering = ['start']
 
   objects = GroupSlipManager()
   objects_all = GroupSlipAllManager()

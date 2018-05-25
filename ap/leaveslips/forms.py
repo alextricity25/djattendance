@@ -3,7 +3,7 @@ from django import forms
 from accounts.widgets import TraineeSelect2MultipleInput
 from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 from .models import IndividualSlip, GroupSlip
-from accounts.models import Trainee, User
+from accounts.models import Trainee, TrainingAssistant, User
 from services.models import Assignment
 from aputils.widgets import DatetimePicker
 
@@ -12,6 +12,7 @@ class LeaveslipForm(forms.ModelForm):
   def __init__(self, *args, **kwargs):
     super(LeaveslipForm, self).__init__(*args, **kwargs)
     self.fields['type'].label = 'Reason'
+    self.fields['TA'].queryset = TrainingAssistant.objects.filter(groups__name='regular_training_assistant')
     if self.instance.TA:
       self.fields['TA'].label = 'TA assigned to this leave slip: %s' % self.instance.TA.full_name + '. Transfer to:'
     else:

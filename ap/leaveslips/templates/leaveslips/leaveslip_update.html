@@ -60,14 +60,11 @@
 {% block content %}
     <h2>TA {{leaveslip.classname|title}} Slip View</h2>
     <div class="col-md-5 col-xs-12">
-      <p>Leaveslip ID: <a id="ajax-redirect" {% block ls-link %}{% endblock %}>{{leaveslip.id}}</a></p>
+      <p>Leaveslip ID: <a id="ajax-redirect" {% block ls_link %}{% endblock %}>{{leaveslip.id}}</a></p>
       {% include "leaveslips/_ta_labels.html" %}
       <form action="{{leaveslip.get_ta_update_url}}" method="post">
         {% csrf_token %}
-        <div class="form-group">
-          <label class="control-label" for="id_trainee">Trainee</label>
-          <textarea name="trainee" rows="2" title="" cols="40" id="id_trainee" class="form-control" readonly="yes" style="resize: none; height: 32px; background-color: white; border-radius: 5px;">{{ leaveslip.trainee }}</textarea>
-        </div>
+        {% block trainee_display %}{% endblock %}
         {% bootstrap_form form %}
         {% include 'leaveslips/_ta_actions.html' with selected_ta=view.request.user %}
         <button type="submit" class="btn-lg btn-primary btn-save">Save</button>

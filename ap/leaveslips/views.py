@@ -43,6 +43,28 @@ class LeaveSlipUpdate(GroupRequiredMixin, generic.UpdateView):
     return ctx
 
 
+@timeit
+def find_next_leaveslip(current_ls):
+  individual = IndividualSlip.objects.raw('''
+    SELECT i_s.id, min(a_r.date) AS min_date
+    FROM leaveslips_individualslip AS i_s
+    JOIN leaveslips_individualslip_rolls AS is_r
+    ON i_s.id = is_r.individualslip_id
+    JOIN attendance_roll AS a_r
+    ON is_r.roll_id = a_r.id
+    WHERE (i_s.status = 'P' OR i_s.status = 'S') AND i_s."TA_id" = {}
+    GROUP BY i_s.id
+    ORDER BY min_date ASC
+    LIMIT 2;'''.format(current_ls.TA.id))
+  group = GroupSlip.objects.filter(status__in=['P', 'S'], TA=current_ls.TA).order_by('start')[:2]
+  # slip.get_date() is expensive so don't call this function too much
+  both = sorted(chain(group, individual), key=lambda slip: slip.get_date())
+  for slip in both:
+    if slip == current_ls:
+      continue
+    return slip
+
+
 class IndividualSlipUpdate(LeaveSlipUpdate):
   model = IndividualSlip
   group_required = ['training_assistant']
@@ -62,11 +84,7 @@ class IndividualSlipUpdate(LeaveSlipUpdate):
         ctx['last_date'] = last_date
         ctx['days_since'] = (current_ls.rolls.first().date - last_date).days
     ctx['show'] = 'leaveslip'
-    next_two_ls = IndividualSlip.objects.filter(status__in=['P', 'S'], TA=current_ls.TA)[:2]
-    ctx['next_ls_id'] = current_ls.id
-    for ls in next_two_ls:
-      if ls.id != current_ls.id:
-        ctx['next_ls_id'] = ls.id
+    ctx['next_ls_url'] = find_next_leaveslip(current_ls).get_ta_update_url()
     ctx['verbose_name'] = current_ls._meta.verbose_name
     return ctx
 
@@ -93,7 +111,17 @@ class GroupSlipUpdate(LeaveSlipUpdate):
   def get_context_data(self, **kwargs):
     ctx = super(GroupSlipUpdate, self).get_context_data(**kwargs)
     ctx['show'] = 'groupslip'
+    ctx['next_ls_url'] = find_next_leaveslip(self.get_object()).get_ta_update_url()
     return ctx
+
+  def post(self, request, **kwargs):
+    update = {}
+    if request.POST.get('status'):
+      update['status'] = request.POST.get('status')
+    
+    GroupSlipSerializer().update(self.get_object(), update)
+    super(GroupSlipUpdate, self).post(request, **kwargs)
+    return HttpResponse('ok')
 
 
 # viewing the leave slips

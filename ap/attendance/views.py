@@ -61,13 +61,13 @@ def react_attendance_context(trainee, period=None, noForm=False):
   individualslips = IndividualSlip.objects.filter(trainee=trainee)
   groupslips = GroupSlip.objects.filter(Q(trainees__in=[trainee])).distinct()
 
-  t = timeit_inline('2')
-  t.start()
+  # events_in_week_list needs to be fixed
+  # line below is currently replaced with for loop in the if statement
   # events = trainee.events_in_week_list(weeks) if weeks else trainee.events
   events = trainee.events
   weeks = None
   disablePeriodSelect = 0
-  if period:
+  if period is not None:
     weeks = [period*2, period*2+1]
     start_date = term.startdate_of_period(period)
     end_date = term.enddate_of_period(period)
@@ -106,30 +106,15 @@ def react_attendance_context(trainee, period=None, noForm=False):
     TAs_bb = listJSONRenderer.render(TrainingAssistantSerializer(TAs, many=True).data)
     trainee_select_form = TraineeSelectForm()
 
-  t = timeit_inline('events')
-  t.start()
   events_bb = listJSONRenderer.render(events_serializer(events, many=True).data)
-  t.end()
-  t = timeit_inline('group events')
-  t.start()
   groupevents_bb = listJSONRenderer.render(events_serializer(groupevents, many=True).data)
-  t.end()
-  t = timeit_inline('trainee')
-  t.start()
-  trainee_bb = listJSONRenderer.render(TraineeForAttendanceSerializer(trainee).data)
-  t.end()
-  t = timeit_inline('rolls')
-  t.start()
-  rolls_bb = listJSONRenderer.render(RollSerializer(rolls, many=True).data)
-  t.end()
-  t = timeit_inline('individualslips')
-  t.start()
+  
   individualslips_bb = listJSONRenderer.render(individual_serializer(individualslips, many=True).data)
-  t.end()
-  t = timeit_inline('groupslips')
-  t.start()
   groupslips_bb = listJSONRenderer.render(group_serializer(groupslips, many=True).data)
-  t.end()
+
+  trainee_bb = listJSONRenderer.render(TraineeForAttendanceSerializer(trainee).data)
+  rolls_bb = listJSONRenderer.render(RollSerializer(rolls, many=True).data)
+  term_bb = listJSONRenderer.render(TermSerializer([term], many=True).data)
 
   ctx = {
       'events_bb': events_bb,
@@ -140,7 +125,7 @@ def react_attendance_context(trainee, period=None, noForm=False):
       'individualslips_bb': individualslips_bb,
       'groupslips_bb': groupslips_bb,
       'TAs_bb': TAs_bb,
-      'term_bb': listJSONRenderer.render(TermSerializer([term], many=True).data),
+      'term_bb': term_bb,
       'trainee_select_form': trainee_select_form,
       'disablePeriodSelect': disablePeriodSelect
   }
