@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from schedules.models import Event, Schedule
+from accounts.models import *
 
 from datetime import time
 
@@ -369,6 +370,10 @@ class Command(BaseCommand):
       e.save()
 
   def handle(self, *args, **options):
-    Event.objects.all().delete()
-    print("* Populating events...")
-    self._create_events()
+    # Event.objects.all().delete()
+    # print("* Populating events...")
+    # self._create_events()
+    bl = Trainee.objects.get(firstname='Benjamin')
+    evs = bl.events_in_week_list([6])
+    for ev in evs:
+      print ev

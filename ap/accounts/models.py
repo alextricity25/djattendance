@@ -343,7 +343,18 @@ class Trainee(User):
 
   # events in list of weeks
   def events_in_week_list(self, weeks):
-    schedules = self.active_schedules
+    active_sch_ids = []
+    for sch in self.active_schedules:
+      in_week = False
+      for wk in weeks:
+        if sch.active_in_week(wk):
+          in_week = True
+          break
+
+      if in_week:
+        active_sch_ids.append(sch.id)
+
+    schedules = self.active_schedules.filter(id__in=active_sch_ids)
     w_tb = OrderedDict()
     for schedule in schedules:
       evs = schedule.events.all()

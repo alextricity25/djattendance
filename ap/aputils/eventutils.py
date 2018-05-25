@@ -24,10 +24,11 @@ class EventUtils:
         # check for conflicts.
         # append ev to list, check for any conflicts (intersectinng time), replace any intersecting evs
         for day_evnt in day_evnts.copy():
-          if day_evnt.check_time_conflict(ev):
+          if day_evnt.check_time_conflict(ev) and day_evnt.priority > ev.priority:
             # replace ev if conflict
             # delete any conflicted evs
-            day_evnts.remove(day_evnt)
+            day_evnts.remove(day_evnt)            
+
         # append after remove all conflicting events
         day_evnts.add(ev)
     return w_tb
