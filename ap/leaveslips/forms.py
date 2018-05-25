@@ -38,7 +38,7 @@ class IndividualSlipForm(LeaveslipForm):
 
   class Meta:
     model = IndividualSlip
-    fields = ['trainee', 'type', 'description', 'location', 'host_name', 'host_phone', 'hc_notified',
+    fields = ['type', 'description', 'location', 'host_name', 'host_phone', 'hc_notified',
               'comments', 'TA_informed', 'texted', 'TA', 'private_TA_comments']
 
 

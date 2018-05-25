@@ -241,6 +241,7 @@ const reducers = {
   trainees: (state = {}) => state,
   tas: (state = {}) => state,
   term: (state = {}) => state,
+  disablePeriodSelect: (state = {}) => state,
   //these will mutate...
   submitting: (state = {}) => state,
   formSuccess: (state = {}) => state,

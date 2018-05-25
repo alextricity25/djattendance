@@ -4,12 +4,13 @@ from itertools import chain
 
 from accounts.models import Statistics, Trainee, TrainingAssistant
 from aputils.decorators import group_required
-from aputils.utils import modify_model_status
+from aputils.utils import modify_model_status, timeit, timeit_inline
 from attendance.views import react_attendance_context
 from braces.views import GroupRequiredMixin
 from django.contrib import messages
 from django.core.urlresolvers import reverse_lazy
 from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.views import generic
 from rest_framework import filters
@@ -26,11 +27,16 @@ from .serializers import (GroupSlipFilter, GroupSlipSerializer,
 
 
 class LeaveSlipUpdate(GroupRequiredMixin, generic.UpdateView):
+  @timeit
   def get_context_data(self, **kwargs):
     listJSONRenderer = JSONRenderer()
     ctx = super(LeaveSlipUpdate, self).get_context_data(**kwargs)
     trainee = self.get_object().get_trainee_requester()
-    ctx.update(react_attendance_context(trainee))
+    periods = self.get_object().periods
+    t = timeit_inline('react attendance')
+    t.start()
+    ctx.update(react_attendance_context(trainee, period=periods[0], noForm=True))
+    t.end()
     ctx['Today'] = self.get_object().get_date().strftime('%m/%d/%Y')
     ctx['SelectedEvents'] = listJSONRenderer.render(AttendanceEventWithDateSerializer(self.get_object().events, many=True).data)
     ctx['default_transfer_ta'] = self.request.user.TA or self.get_object().TA
@@ -44,23 +50,37 @@ class IndividualSlipUpdate(LeaveSlipUpdate):
   form_class = IndividualSlipForm
   context_object_name = 'leaveslip'
 
+  @timeit
   def get_context_data(self, **kwargs):
     ctx = super(IndividualSlipUpdate, self).get_context_data(**kwargs)
-    if self.get_object().type in ['MEAL', 'NIGHT']:
-      IS_list = IndividualSlip.objects.filter(status='A', trainee=self.get_object().get_trainee_requester(), type=self.get_object().type).order_by('-submitted')
+    current_ls = self.get_object()
+    if current_ls.type in ['MEAL', 'NIGHT']:
+      IS_list = IndividualSlip.objects.filter(status='A', trainee=current_ls.get_trainee_requester(), type=current_ls.type).order_by('-submitted')
       most_recent_IS = IS_list.first()
-      if most_recent_IS and most_recent_IS != self.get_object():
+      if most_recent_IS and most_recent_IS != current_ls:
         last_date = most_recent_IS.rolls.all().order_by('date').last().date
         ctx['last_date'] = last_date
-        ctx['days_since'] = (self.get_object().rolls.first().date - last_date).days
+        ctx['days_since'] = (current_ls.rolls.first().date - last_date).days
     ctx['show'] = 'leaveslip'
+    next_two_ls = IndividualSlip.objects.filter(status__in=['P', 'S'], TA=current_ls.TA)[:2]
+    ctx['next_ls_id'] = current_ls.id
+    for ls in next_two_ls:
+      if ls.id != current_ls.id:
+        ctx['next_ls_id'] = ls.id
+    ctx['verbose_name'] = current_ls._meta.verbose_name
     return ctx
 
+  @timeit
   def post(self, request, **kwargs):
-    events = json.loads(request.POST.get('events', '[]'))
-    if events:
-      IndividualSlipSerializer().update(self.get_object(), {'events': events})
-    return super(IndividualSlipUpdate, self).post(request, **kwargs)
+    update = {}
+    if request.POST.get('events'):
+      update['events'] = json.loads(request.POST.get('events'))
+    if request.POST.get('status'):
+      update['status'] = request.POST.get('status')
+    
+    IndividualSlipSerializer().update(self.get_object(), update)
+    super(IndividualSlipUpdate, self).post(request, **kwargs)
+    return HttpResponse('ok')
 
 
 class GroupSlipUpdate(LeaveSlipUpdate):

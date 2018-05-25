@@ -2,7 +2,7 @@
 {% load common_tags %}
 
 {% block ls-link %}
-href="{% url 'leaveslips:individual-update' leaveslip.id %}"
+href="{% url 'leaveslips:individual-update' next_ls_id %}"
 {% endblock %}
 
 {% block leaveslip_script %}
