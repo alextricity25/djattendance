@@ -84,7 +84,10 @@ class IndividualSlipUpdate(LeaveSlipUpdate):
         ctx['last_date'] = last_date
         ctx['days_since'] = (current_ls.rolls.first().date - last_date).days
     ctx['show'] = 'leaveslip'
-    ctx['next_ls_url'] = find_next_leaveslip(current_ls).get_ta_update_url()
+    try:
+      ctx['next_ls_url'] = find_next_leaveslip(current_ls).get_ta_update_url()
+    except AttributeError:
+      ctx['next_ls_url'] = ''
     ctx['verbose_name'] = current_ls._meta.verbose_name
     return ctx
 
@@ -95,7 +98,7 @@ class IndividualSlipUpdate(LeaveSlipUpdate):
       update['events'] = json.loads(request.POST.get('events'))
     if request.POST.get('status'):
       update['status'] = request.POST.get('status')
-    
+
     IndividualSlipSerializer().update(self.get_object(), update)
     super(IndividualSlipUpdate, self).post(request, **kwargs)
     return HttpResponse('ok')
