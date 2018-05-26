@@ -3,7 +3,7 @@ from django import forms
 from accounts.widgets import TraineeSelect2MultipleInput
 from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 from .models import IndividualSlip, GroupSlip
-from accounts.models import Trainee, TrainingAssistant, User
+from accounts.models import Trainee, User
 from services.models import Assignment
 from aputils.widgets import DatetimePicker
 
