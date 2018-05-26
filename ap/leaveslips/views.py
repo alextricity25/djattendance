@@ -8,7 +8,7 @@ from aputils.utils import modify_model_status
 from attendance.views import react_attendance_context
 from braces.views import GroupRequiredMixin
 from django.contrib import messages
-from django.core.urlresolvers import reverse_lazy
+from django.core.urlresolvers import reverse_lazy, reverse
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -61,7 +61,7 @@ class IndividualSlipUpdate(LeaveSlipUpdate):
     try:
       ctx['next_ls_url'] = find_next_leaveslip(current_ls).get_ta_update_url()
     except AttributeError:
-      ctx['next_ls_url'] = ''
+      ctx['next_ls_url'] = "%s?status=P&ta=%s" % (reverse('leaveslips:ta-leaveslip-list'), ctx['default_transfer_ta'].id)
     ctx['verbose_name'] = current_ls._meta.verbose_name
     current_ls.is_late = current_ls.late
     ctx['leaveslip'] = current_ls
@@ -92,7 +92,7 @@ class GroupSlipUpdate(LeaveSlipUpdate):
     try:
       ctx['next_ls_url'] = find_next_leaveslip(self.get_object()).get_ta_update_url()
     except AttributeError:
-      ctx['next_ls_url'] = ''
+      ctx['next_ls_url'] = "%s?status=P&ta=%s" % (reverse('leaveslips:ta-leaveslip-list'), ctx['default_transfer_ta'].id)
     current_ls = self.get_object()
     current_ls.is_late = current_ls.late
     ctx['leaveslip'] = current_ls      
