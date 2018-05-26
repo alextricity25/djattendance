@@ -67,7 +67,7 @@ def react_attendance_context(trainee, period=None, noForm=False):
   weeks = None
   disablePeriodSelect = 0
   if period is not None:
-    weeks = [period*2, period*2+1]
+    weeks = [period * 2, period * 2 + 1]
     start_date = term.startdate_of_period(period)
     end_date = term.enddate_of_period(period)
     rolls = rolls.filter(date__gte=start_date, date__lte=end_date)
@@ -106,7 +106,7 @@ def react_attendance_context(trainee, period=None, noForm=False):
 
   events_bb = listJSONRenderer.render(events_serializer(events, many=True).data)
   groupevents_bb = listJSONRenderer.render(events_serializer(groupevents, many=True).data)
-  
+
   individualslips_bb = listJSONRenderer.render(individual_serializer(individualslips, many=True).data)
   groupslips_bb = listJSONRenderer.render(group_serializer(groupslips, many=True).data)
 
@@ -145,11 +145,11 @@ class AttendancePersonal(AttendanceView):
     ctx = super(AttendancePersonal, self).get_context_data(**kwargs)
     listJSONRenderer = JSONRenderer()
     user = self.request.user
-    trainee = trainee_from_user(user)    
+    trainee = trainee_from_user(user)
     if not trainee:
       trainee = Trainee.objects.filter(groups__name='attendance_monitors').first()
       ctx['actual_user'] = listJSONRenderer.render(TraineeForAttendanceSerializer(self.request.user).data)
-    ctx.update(react_attendance_context(trainee))    
+    ctx.update(react_attendance_context(trainee))
     return ctx
 
 

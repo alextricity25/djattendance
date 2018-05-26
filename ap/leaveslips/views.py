@@ -84,7 +84,10 @@ class IndividualSlipUpdate(LeaveSlipUpdate):
         ctx['last_date'] = last_date
         ctx['days_since'] = (current_ls.rolls.first().date - last_date).days
     ctx['show'] = 'leaveslip'
-    ctx['next_ls_url'] = find_next_leaveslip(current_ls).get_ta_update_url()
+    try:
+      ctx['next_ls_url'] = find_next_leaveslip(current_ls).get_ta_update_url()
+    except AttributeError:
+      ctx['next_ls_url'] = ''
     ctx['verbose_name'] = current_ls._meta.verbose_name
     return ctx
 
@@ -111,14 +114,16 @@ class GroupSlipUpdate(LeaveSlipUpdate):
   def get_context_data(self, **kwargs):
     ctx = super(GroupSlipUpdate, self).get_context_data(**kwargs)
     ctx['show'] = 'groupslip'
-    ctx['next_ls_url'] = find_next_leaveslip(self.get_object()).get_ta_update_url()
+    try:
+      ctx['next_ls_url'] = find_next_leaveslip(self.get_object()).get_ta_update_url()
+    except AttributeError:
+      ctx['next_ls_url'] = ''
     return ctx
 
   def post(self, request, **kwargs):
     update = {}
     if request.POST.get('status'):
       update['status'] = request.POST.get('status')
-    
     GroupSlipSerializer().update(self.get_object(), update)
     super(GroupSlipUpdate, self).post(request, **kwargs)
     return HttpResponse('ok')
@@ -182,7 +187,7 @@ class TALeaveSlipList(GroupRequiredMixin, generic.TemplateView):
     if selected_trainee and int(selected_trainee) > 0:
       tr = Trainee.objects.filter(pk=selected_trainee).first()
       i_slips = i_slips.filter(trainee=tr)
-      g_slips = g_slips.filter(trainees__in=[tr]) # if trainee is in a group leave slip submitted by another user
+      g_slips = g_slips.filter(trainees__in=[tr])  # if trainee is in a group leave slip submitted by another user
 
     if status != "-1":
       si_slips = IndividualSlip.objects.none()
