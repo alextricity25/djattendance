@@ -260,6 +260,8 @@ class GroupSlip(LeaveSlip):
 
   @property
   def late(self):
+    if service_assignment:
+      return False
     return self.submitted > self.end + timedelta(hours=48)
 
   def get_update_url(self):
