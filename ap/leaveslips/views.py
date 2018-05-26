@@ -4,7 +4,7 @@ from itertools import chain
 
 from accounts.models import Statistics, Trainee, TrainingAssistant
 from aputils.decorators import group_required
-from aputils.utils import modify_model_status, timeit, timeit_inline
+from aputils.utils import modify_model_status
 from attendance.views import react_attendance_context
 from braces.views import GroupRequiredMixin
 from django.contrib import messages
@@ -24,45 +24,20 @@ from .forms import (GroupSlipAdminForm, GroupSlipForm, IndividualSlipAdminForm,
 from .models import GroupSlip, IndividualSlip, LeaveSlip
 from .serializers import (GroupSlipFilter, GroupSlipSerializer,
                           IndividualSlipFilter, IndividualSlipSerializer)
+from .utils import find_next_leaveslip
 
 
 class LeaveSlipUpdate(GroupRequiredMixin, generic.UpdateView):
-  @timeit
   def get_context_data(self, **kwargs):
     listJSONRenderer = JSONRenderer()
     ctx = super(LeaveSlipUpdate, self).get_context_data(**kwargs)
     trainee = self.get_object().get_trainee_requester()
     periods = self.get_object().periods
-    t = timeit_inline('react attendance')
-    t.start()
     ctx.update(react_attendance_context(trainee, period=periods[0], noForm=True))
-    t.end()
     ctx['Today'] = self.get_object().get_date().strftime('%m/%d/%Y')
     ctx['SelectedEvents'] = listJSONRenderer.render(AttendanceEventWithDateSerializer(self.get_object().events, many=True).data)
     ctx['default_transfer_ta'] = self.request.user.TA or self.get_object().TA
     return ctx
-
-
-@timeit
-def find_next_leaveslip(current_ls):
-  individual = IndividualSlip.objects.raw('''
-    SELECT i_s.id, min(a_r.date) AS min_date
-    FROM leaveslips_individualslip AS i_s
-    JOIN leaveslips_individualslip_rolls AS is_r
-    ON i_s.id = is_r.individualslip_id
-    JOIN attendance_roll AS a_r
-    ON is_r.roll_id = a_r.id
-    WHERE (i_s.status = 'P' OR i_s.status = 'S') AND i_s."TA_id" = {}
-    GROUP BY i_s.id
-    ORDER BY min_date ASC
-    LIMIT 2;'''.format(current_ls.TA.id))
-  group = GroupSlip.objects.filter(status__in=['P', 'S'], TA=current_ls.TA).order_by('start')[:2]
-  # slip.get_date() is expensive so don't call this function too much
-  both = sorted(chain(group, individual), key=lambda slip: slip.get_date())
-  for slip in both:
-    if slip == current_ls:
-      continue
-    return slip
 
 
 class IndividualSlipUpdate(LeaveSlipUpdate):
@@ -72,7 +47,6 @@ class IndividualSlipUpdate(LeaveSlipUpdate):
   form_class = IndividualSlipForm
   context_object_name = 'leaveslip'
 
-  @timeit
   def get_context_data(self, **kwargs):
     ctx = super(IndividualSlipUpdate, self).get_context_data(**kwargs)
     current_ls = self.get_object()
@@ -89,9 +63,10 @@ class IndividualSlipUpdate(LeaveSlipUpdate):
     except AttributeError:
       ctx['next_ls_url'] = ''
     ctx['verbose_name'] = current_ls._meta.verbose_name
+    current_ls.is_late = current_ls.late
+    ctx['leaveslip'] = current_ls
     return ctx
 
-  @timeit
   def post(self, request, **kwargs):
     update = {}
     if request.POST.get('events'):
@@ -118,6 +93,9 @@ class GroupSlipUpdate(LeaveSlipUpdate):
       ctx['next_ls_url'] = find_next_leaveslip(self.get_object()).get_ta_update_url()
     except AttributeError:
       ctx['next_ls_url'] = ''
+    current_ls = self.get_object()
+    current_ls.is_late = current_ls.late
+    ctx['leaveslip'] = current_ls      
     return ctx
 
   def post(self, request, **kwargs):

@@ -260,7 +260,7 @@ class GroupSlip(LeaveSlip):
 
   @property
   def late(self):
-    if service_assignment:
+    if self.service_assignment:
       return False
     return self.submitted > self.end + timedelta(hours=48)
 
