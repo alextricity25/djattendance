@@ -37,8 +37,11 @@ class EventUtils:
   @staticmethod
   def export_event_list_from_table(w_tb, start_datetime=None, end_datetime=None):
     event_list = []
+    w_tb = OrderedDict(sorted(w_tb.iteritems(), key=lambda x: x[0][1]))
     for (w, d), evs in w_tb.items():
       # Sort the events in each week
+      print (w, d)
+      print evs
       evs = sorted(evs, key=lambda x: (x.start, x.end))
       for ev in evs:
         date = ev.date_for_week(w)
