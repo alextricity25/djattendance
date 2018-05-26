@@ -18,7 +18,7 @@
     let status = '';
     $('.modify-status').click((e) => {
       e.preventDefault();
-      status = e.currentTarget.id;
+      status = e.currentTarget.dataset.status;
       $('form').submit();
     });
     let redirect = $('#ajax-redirect').attr('href');

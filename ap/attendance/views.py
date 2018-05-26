@@ -12,7 +12,6 @@ from ap.forms import TraineeSelectForm
 from aputils.decorators import group_required
 from aputils.eventutils import EventUtils
 from aputils.trainee_utils import is_trainee, trainee_from_user
-from aputils.utils import timeit_inline
 from braces.views import GroupRequiredMixin
 from django.core.urlresolvers import resolve, reverse_lazy
 from django.db.models import Q
@@ -84,12 +83,11 @@ def react_attendance_context(trainee, period=None, noForm=False):
         period_events.append(ev)
 
     events = period_events
-  t.end()
 
   groupevents = trainee.groupevents_in_week_list(weeks) if weeks else trainee.groupevents
   individualslips = individualslips.prefetch_related('rolls__event')
   groupslips = groupslips.prefetch_related('trainees')
-  
+
   events_serializer = EventWithDateSerializer
   individual_serializer = IndividualSlipTADetailSerializer
   group_serializer = GroupSlipTADetailSerializer

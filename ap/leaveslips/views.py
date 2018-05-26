@@ -95,7 +95,7 @@ class IndividualSlipUpdate(LeaveSlipUpdate):
       update['events'] = json.loads(request.POST.get('events'))
     if request.POST.get('status'):
       update['status'] = request.POST.get('status')
-    
+
     IndividualSlipSerializer().update(self.get_object(), update)
     super(IndividualSlipUpdate, self).post(request, **kwargs)
     return HttpResponse('ok')
