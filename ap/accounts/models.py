@@ -363,10 +363,10 @@ class Trainee(User):
     # return all the calculated, composite, priority/conflict resolved list of events
     return EventUtils.export_event_list_from_table(w_tb)
 
-  # TODO, work out case for users with two rolls for the same event and date
-  # currently just randomly grabs as seen with the rolls query
   def get_attendance_record(self):
     rolls = self.rolls.exclude(status='P').order_by('event', 'date').distinct('event', 'date').prefetch_related('event')
+    if self.trainees.self_attendance:
+      rolls = rolls.filter(submitted_by=self.trainee)
     ind_slips = self.individualslips.filter(status='A')
     group_slips = self.groupslips.filter(trainees__in=[self], status='A')
     att_record = []  # list of non 'present' events
