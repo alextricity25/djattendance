@@ -95,7 +95,7 @@ class GroupSlipUpdate(LeaveSlipUpdate):
       ctx['next_ls_url'] = "%s?status=P&ta=%s" % (reverse('leaveslips:ta-leaveslip-list'), ctx['default_transfer_ta'].id)
     current_ls = self.get_object()
     current_ls.is_late = current_ls.late
-    ctx['leaveslip'] = current_ls      
+    ctx['leaveslip'] = current_ls
     return ctx
 
   def post(self, request, **kwargs):
