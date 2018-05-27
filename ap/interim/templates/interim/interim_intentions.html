@@ -35,7 +35,7 @@
 
 <script type="text/javascript">
 
-function date_formater(dt) {
+function date_formatter(dt) {
   date = dt.toLocaleDateString('en-US', options)
   mon = date.slice(0, 2)
   dat = date.slice(3, 5)
@@ -50,6 +50,7 @@ var dt_options = {
   defaultSelect: true,
 };
 var options = {year: 'numeric', month: '2-digit', day: '2-digit' };
+var interim_end = "{{admin.term_begin_date}}"
 
 $(document).ready(() => {
 
@@ -65,9 +66,9 @@ $(document).ready(() => {
 
   if ($("#id_start").val() == 0 || $("#id_end").val() == 0) {
     $("#id_start").val(interim_start);
-    let dt = new Date(interim_start);
-    dt.setDate(dt.getDate() + 1);
-    $("#id_end").val(date_formater(dt));
+    let dt = new Date(interim_end);
+    dt.setDate(dt.getDate());
+    $("#id_end").val(date_formatter(dt));
   }
   $("[name='start']").prop( "readonly", true );
   $("[name='start']").addClass('readonly');
@@ -98,9 +99,10 @@ function show_hide_post_interim(){
       val++;
       $("#id_itinerary_table tr:last").attr("id","row_" + val);
       dt.setDate(dt.getDate() + 1);
-      $("#id_itinerary_table tr:last #id_start").val(date_formater(dt));
-      dt.setDate(dt.getDate() + 1);
-      $("#id_itinerary_table tr:last #id_end").val(date_formater(dt));
+      $("#id_itinerary_table tr:last #id_start").val(date_formatter(dt));
+      let edt = new Date(interim_end)
+      edt.setDate(edt.getDate());
+      $("#id_itinerary_table tr:last #id_end").val(date_formatter(edt));
       $($("#id_itinerary_table tr:last > td > input")[1]).datetimepicker(dt_options)
 
     } else {
