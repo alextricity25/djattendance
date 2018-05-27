@@ -24,10 +24,10 @@ class EventUtils:
         # check for conflicts.
         # append ev to list, check for any conflicts (intersectinng time), replace any intersecting evs
         for day_evnt in day_evnts.copy():
-          if day_evnt.check_time_conflict(ev) and day_evnt.priority > ev.priority:
+          if (day_evnt.check_time_conflict(ev) and day_evnt.priority <= ev.priority) or day_evnt.id == ev.id :
             # replace ev if conflict
             # delete any conflicted evs
-            day_evnts.remove(day_evnt)            
+            day_evnts.remove(day_evnt)
 
         # append after remove all conflicting events
         day_evnts.add(ev)
@@ -101,13 +101,13 @@ class EventUtils:
     return w_tb
 
   @staticmethod
-  def export_typed_ordered_roll_list(w_tb, type):
+  def export_typed_ordered_roll_list(w_tb, type=None, monitor=None):
     # OrderedDict so events are in order of start/end time when iterated out unto the template
     event_trainee_tb = []
     for (w, d), evs in w_tb.items():
       for ev, ts in evs.items():
         # only calculate ev for type wanted
-        if (type == ev.type) or (type == 'RF' and ev.monitor == 'RF'):
+        if (type == ev.type) or (type == 'RF' and ev.monitor == 'RF') or (monitor == ev.monitor):
           date = ev.date_for_week(w)
           # calc date from w
           ev.start_datetime = datetime.combine(date, ev.start)

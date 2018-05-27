@@ -351,10 +351,9 @@ class Trainee(User):
           in_week = True
           break
 
-      if in_week:
-        active_sch_ids.append(sch.id)
+      if not in_week:
+        schedules = schedules.exclude(id=sch.id)
 
-    schedules = self.active_schedules.filter(id__in=active_sch_ids)
     w_tb = OrderedDict()
     for schedule in schedules:
       evs = schedule.events.all()
@@ -433,6 +432,17 @@ class Trainee(User):
     c_term = Term.current_term()
     start_week = c_term.term_week_of_date(start)
     end_week = c_term.term_week_of_date(end)
+
+    # only use the schedules that are active in those week ranges    
+    for sch in schedules:
+      in_week = False
+      for wk in range(start_week, end_week+1):
+        if sch.active_in_week(wk):
+          in_week = True
+
+      if not in_week:
+        schedules = schedules.exclude(id=sch.id)
+
     w_tb = OrderedDict()
     # for every schedule, filter events to get events in the date range.
     for schedule in schedules:
