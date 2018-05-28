@@ -8,6 +8,10 @@ href="{{next_ls_url}}"
   <script>
     $(document).ready(() => {
       $('#id_trainees').select2({width: '100%'});
+      $("li[title|='" + "{{ leaveslip.trainee.full_name }}" + "']").css("background-color", "#FFDB77");
+      $('#id_trainees').on('select2:change', function (e) {
+        $("li[title|='" + "{{ leaveslip.trainee.full_name }}" + "']").css("background-color", "#FFDB77");
+      });
     });
   </script>
 {% endblock %}
