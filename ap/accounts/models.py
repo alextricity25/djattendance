@@ -323,12 +323,25 @@ class Trainee(User):
     return self.schedules.filter(trainee_select='GP').first()
 
   @property
-  def active_schedules(self):
-    return self.schedules.filter(
+  def active_schedules(self, weeks=None):
+    active_sch = self.schedules.filter(
         Q(is_deleted=False) &
         (Q(season=Term.current_season()) | Q(season='All')) &
         ~Q(trainee_select='GP')
     ).order_by('priority')
+
+    if weeks:
+      for sch in active_sch:
+        in_week = False
+        for wk in weeks:
+          if sch.active_in_week(wk):
+            in_week = True
+            break
+
+        if not in_week:
+          active_sch = active_sch.exclude(id=sch.id)
+    
+    return active_sch
 
   # rolls for current term
   @property
@@ -343,17 +356,7 @@ class Trainee(User):
 
   # events in list of weeks
   def events_in_week_list(self, weeks):
-    active_sch_ids = []
-    for sch in self.active_schedules:
-      in_week = False
-      for wk in weeks:
-        if sch.active_in_week(wk):
-          in_week = True
-          break
-
-      if not in_week:
-        schedules = schedules.exclude(id=sch.id)
-
+    schedules = self.active_schedules(weeks)
     w_tb = OrderedDict()
     for schedule in schedules:
       evs = schedule.events.all()
@@ -422,26 +425,18 @@ class Trainee(User):
   # Returns event list sorted in timestamp order
   # If you want to sort by name, use event_list.sort(key=operator.attrgetter('name'))
   def events_in_date_range(self, start, end, listOfSchedules=[]):
-    #check for generic group calendar
-    if listOfSchedules:
-      schedules = listOfSchedules
-    else:
-      schedules = self.active_schedules
 
     # figure out which weeks are in the date range.
     c_term = Term.current_term()
     start_week = c_term.term_week_of_date(start)
     end_week = c_term.term_week_of_date(end)
 
-    # only use the schedules that are active in those week ranges    
-    for sch in schedules:
-      in_week = False
-      for wk in range(start_week, end_week+1):
-        if sch.active_in_week(wk):
-          in_week = True
-
-      if not in_week:
-        schedules = schedules.exclude(id=sch.id)
+    #check for generic group calendar
+    if listOfSchedules:
+      schedules = listOfSchedules
+    else:
+      # only use the schedules that are active in those week ranges    
+      schedules = self.active_schedules(range(start_week, end_week+1))
 
     w_tb = OrderedDict()
     # for every schedule, filter events to get events in the date range.
