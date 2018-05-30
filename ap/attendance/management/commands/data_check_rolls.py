@@ -11,7 +11,9 @@ from django.db.models import Q
 import sys
 from contextlib import contextmanager
 
-AMs = Trainee.objects.filter(groups__name='attendance_monitors')
+AMs = Trainee.objects.filter(Q(groups__name='attendance_monitors'))
+AMs = AMs.filter(~Q(groups__name='dev'))
+AMs = AMs.filter(~Q(groups__name='regular_training_assistant'))
 
 @contextmanager
 def stdout_redirected(new_stdout):
@@ -306,7 +308,7 @@ class Command(BaseCommand):
     print '------------ For Attendanece Monitros ----------'
     print '------------ invalid duplicate rolls ----------'
     for am in AMs:
-      for r in [qs.all() for qs in two_rolls if qs.filter(submitted_by).exist()]:
+      for r in [qs.all() for qs in two_rolls if qs.filter(submitted_by=am).exist()]:
         print output.format(str(r.id), r, r.submitted_by, r.last_modified)
         coutner += 1
       print '\n'

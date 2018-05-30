@@ -84,7 +84,7 @@
       </tbody>
     </table>
     {% endif %}
-    {% if seating_list|length > 180 %}
+    {% if seating_list|length > 165 %}
     <table class ="td" id="table_info" >
       <thead>
         <tr>
@@ -93,7 +93,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for assignment in seating_list|dictsort:"last_name"|slice:"180:" %}
+        {% for assignment in seating_list|dictsort:"last_name"|slice:"165:" %}
           <tr>
             <td>
               {{assignment.last_name|truncatechars:20}}, {{assignment.first_name|truncatechars:15}}

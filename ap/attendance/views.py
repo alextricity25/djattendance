@@ -25,7 +25,9 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from houses.models import House
 from leaveslips.models import GroupSlip, IndividualSlip
 from leaveslips.serializers import (GroupSlipSerializer,
-                                    IndividualSlipSerializer)
+                                    IndividualSlipSerializer,
+                                    IndividualSlipTADetailSerializer,
+                                    GroupSlipTADetailSerializer)
 from rest_framework import filters
 from rest_framework.renderers import JSONRenderer
 from rest_framework_bulk import BulkModelViewSet
@@ -49,29 +51,80 @@ from .serializers import AttendanceSerializer, RollFilter, RollSerializer
 # but the trainee doesn't input his/her own rolls, then the trainee shouldn't see these rolls
 # unless AMs pull audit
 
-def react_attendance_context(trainee):
+def react_attendance_context(trainee, period=None, noForm=False):
   listJSONRenderer = JSONRenderer()
-  trainees = Trainee.objects.all().prefetch_related('groups')
-  events = trainee.events
-  groupevents = trainee.groupevents
+  term = Term.current_term()
   rolls = Roll.objects.filter(trainee=trainee)
   if trainee.self_attendance:
     rolls = rolls.filter(submitted_by=trainee)
-  individualslips = IndividualSlip.objects.filter(trainee=trainee).prefetch_related('rolls')
-  groupslips = GroupSlip.objects.filter(Q(trainees__in=[trainee])).distinct().prefetch_related('trainees')
-  TAs = TrainingAssistant.objects.filter(groups__name='regular_training_assistant')
-  term = [Term.current_term()]
+  individualslips = IndividualSlip.objects.filter(trainee=trainee)
+  groupslips = GroupSlip.objects.filter(Q(trainees__in=[trainee])).distinct()
+
+  # events_in_week_list needs to be fixed
+  # line below is currently replaced with for loop in the if statement
+  # events = trainee.events_in_week_list(weeks) if weeks else trainee.events
+  events = trainee.events
+  weeks = None
+  disablePeriodSelect = 0
+  if period is not None:
+    weeks = [period * 2, period * 2 + 1]
+    start_date = term.startdate_of_period(period)
+    end_date = term.enddate_of_period(period)
+    # rolls = rolls.filter(date__gte=start_date, date__lte=end_date)
+    individualslips = IndividualSlip.objects.filter(Q(rolls__in=rolls))
+    groupslips = groupslips.filter(start__gte=start_date, end__lte=end_date)
+    disablePeriodSelect = 1
+
+    period_events = []
+    start = datetime.combine(term.startdate_of_week(weeks[0]), time())
+    end = datetime.combine(term.enddate_of_week(weeks[-1] + 1), time())
+    for ev in events:
+      if ev.start_datetime >= start and ev.end_datetime <= end:
+        period_events.append(ev)
+
+    # events = period_events
+
+  groupevents = trainee.groupevents_in_week_list(weeks) if weeks else trainee.groupevents
+  groupslips = groupslips.prefetch_related('trainees')
+
+  events_serializer = EventWithDateSerializer
+  individual_serializer = IndividualSlipTADetailSerializer
+  group_serializer = GroupSlipTADetailSerializer
+  trainees_bb = {}
+  TAs_bb = {}
+  trainee_select_form = None
+  if not noForm:
+    events_serializer = AttendanceEventWithDateSerializer
+    individual_serializer = IndividualSlipSerializer
+    group_serializer = GroupSlipSerializer
+    trainees = Trainee.objects.all().prefetch_related('groups')
+    trainees_bb = listJSONRenderer.render(TraineeForAttendanceSerializer(trainees, many=True).data)
+    TAs = TrainingAssistant.objects.filter(groups__name='regular_training_assistant')
+    TAs_bb = listJSONRenderer.render(TrainingAssistantSerializer(TAs, many=True).data)
+    trainee_select_form = TraineeSelectForm()
+
+  events_bb = listJSONRenderer.render(events_serializer(events, many=True).data)
+  groupevents_bb = listJSONRenderer.render(events_serializer(groupevents, many=True).data)
+
+  individualslips_bb = listJSONRenderer.render(individual_serializer(individualslips, many=True).data)
+  groupslips_bb = listJSONRenderer.render(group_serializer(groupslips, many=True).data)
+
+  trainee_bb = listJSONRenderer.render(TraineeForAttendanceSerializer(trainee).data)
+  rolls_bb = listJSONRenderer.render(RollSerializer(rolls, many=True).data)
+  term_bb = listJSONRenderer.render(TermSerializer([term], many=True).data)
+
   ctx = {
-      'events_bb': listJSONRenderer.render(AttendanceEventWithDateSerializer(events, many=True).data),
-      'groupevents_bb': listJSONRenderer.render(AttendanceEventWithDateSerializer(groupevents, many=True).data),
-      'trainee_bb': listJSONRenderer.render(TraineeForAttendanceSerializer(trainee).data),
-      'trainees_bb': listJSONRenderer.render(TraineeForAttendanceSerializer(trainees, many=True).data),
-      'rolls_bb': listJSONRenderer.render(RollSerializer(rolls, many=True).data),
-      'individualslips_bb': listJSONRenderer.render(IndividualSlipSerializer(individualslips, many=True).data),
-      'groupslips_bb': listJSONRenderer.render(GroupSlipSerializer(groupslips, many=True).data),
-      'TAs_bb': listJSONRenderer.render(TrainingAssistantSerializer(TAs, many=True).data),
-      'term_bb': listJSONRenderer.render(TermSerializer(term, many=True).data),
-      'trainee_select_form': TraineeSelectForm()
+      'events_bb': events_bb,
+      'groupevents_bb': groupevents_bb,
+      'trainee_bb': trainee_bb,
+      'trainees_bb': trainees_bb,
+      'rolls_bb': rolls_bb,
+      'individualslips_bb': individualslips_bb,
+      'groupslips_bb': groupslips_bb,
+      'TAs_bb': TAs_bb,
+      'term_bb': term_bb,
+      'trainee_select_form': trainee_select_form,
+      'disablePeriodSelect': disablePeriodSelect
   }
   return ctx
 
@@ -91,11 +144,11 @@ class AttendancePersonal(AttendanceView):
     ctx = super(AttendancePersonal, self).get_context_data(**kwargs)
     listJSONRenderer = JSONRenderer()
     user = self.request.user
-    trainee = trainee_from_user(user)    
+    trainee = trainee_from_user(user)
     if not trainee:
       trainee = Trainee.objects.filter(groups__name='attendance_monitors').first()
       ctx['actual_user'] = listJSONRenderer.render(TraineeForAttendanceSerializer(self.request.user).data)
-    ctx.update(react_attendance_context(trainee))    
+    ctx.update(react_attendance_context(trainee))
     return ctx
 
 

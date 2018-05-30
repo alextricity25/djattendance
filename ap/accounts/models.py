@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import dateutil
 
@@ -320,7 +320,7 @@ class Trainee(User):
   # for groupslips, create a schedule named 'Group Events' filled with group events (located in static/react/scripts/testdata/groupevents.js)
   @property
   def group_schedule(self):
-    return self.schedules.filter(trainee_select='GP').first()
+    return self.schedules.filter(trainee_select='GP').all()
 
   @property
   def active_schedules(self):
@@ -340,17 +340,6 @@ class Trainee(User):
       return "%s %s" % (self.firstname, self.lastname)
     except AttributeError as e:
       return str(self.id) + ": " + str(e)
-
-  # events in list of weeks
-  def events_in_week_list(self, weeks):
-    schedules = self.active_schedules
-    w_tb = OrderedDict()
-    for schedule in schedules:
-      evs = schedule.events.all()
-      w_tb = EventUtils.compute_prioritized_event_table(w_tb, weeks, evs, schedule.priority)
-
-    # return all the calculated, composite, priority/conflict resolved list of events
-    return EventUtils.export_event_list_from_table(w_tb)
 
   # TODO, work out case for users with two rolls for the same event and date
   # currently just randomly grabs as seen with the rolls query
@@ -496,21 +485,36 @@ class Trainee(User):
     # return all the calculated, composite, priority/conflict resolved list of events
     return EventUtils.export_event_list_from_table(w_tb)
 
+  # events in list of weeks
+  def events_in_week_list(self, weeks):
+    schedules = self.active_schedules
+    w_tb = OrderedDict()
+    for schedule in schedules:
+      evs = schedule.events.all()
+      w_tb = EventUtils.compute_prioritized_event_table(w_tb, weeks, evs, schedule.priority)
+
+    # return all the calculated, composite, priority/conflict resolved list of events
+    return EventUtils.export_event_list_from_table(w_tb)
+
   @cached_property
   def groupevents(self):
     return self.groupevents_in_week_range()
 
-  def groupevents_in_week_range(self, start_week=0, end_week=19):
-    schedule = self.group_schedule
-    if schedule:
+  def groupevents_in_week_list(self, weeks):
+    schedules = self.group_schedule
+    if schedules:
       w_tb = OrderedDict()
-      # create week table
-      evs = schedule.events.all()
-      weeks = [int(x) for x in range(start_week, end_week + 1)]
-      w_tb = EventUtils.compute_prioritized_event_table(w_tb, weeks, evs, schedule.priority)
+      for schedule in schedules:
+        # create week table
+        evs = schedule.events.all()
+        w_tb = EventUtils.compute_prioritized_event_table(w_tb, weeks, evs, schedule.priority)
       # return all the calculated, composite, priority/conflict resolved list of events
       return EventUtils.export_event_list_from_table(w_tb)
     return []
+
+  def groupevents_in_week_range(self, start_week=0, end_week=19):
+    weeks = [int(x) for x in range(start_week, end_week + 1)]
+    return self.groupevents_in_week_list(weeks)
 
 
 class TAManager(models.Manager):

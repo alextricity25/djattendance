@@ -163,7 +163,6 @@ def generate_cards(context):
             CardLink(title="Study", url=reverse('attendance:study-rolls')),
             CardLink(title="Team", url=reverse('attendance:team-rolls')),
             CardLink(title="YPC", url=reverse('attendance:ypc-rolls')),
-            CardLink(title="Assign trainees to schedules", url=reverse('schedules:assign-trainees')),
         ]
     )
     cards.append(attendance_card)
