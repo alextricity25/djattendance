@@ -76,7 +76,7 @@ $(document).ready(() => {
 });
 
 function show_hide_post_interim(){
-    if($('#id_intent_1').is(':checked')) {
+    if($('#id_intent_1, #id_intent_2').is(':checked')) {
       $("#id_post_intent_comments").show()
       $('label[for=id_post_intent_comments]').show();
       $("#id_post_training_intentions").show()
