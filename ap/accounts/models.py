@@ -320,7 +320,7 @@ class Trainee(User):
   # for groupslips, create a schedule named 'Group Events' filled with group events (located in static/react/scripts/testdata/groupevents.js)
   @property
   def group_schedule(self):
-    return self.schedules.filter(trainee_select='GP').first()
+    return self.schedules.filter(trainee_select='GP').all()
 
   @property
   def active_schedules(self):
@@ -501,12 +501,13 @@ class Trainee(User):
     return self.groupevents_in_week_range()
 
   def groupevents_in_week_list(self, weeks):
-    schedule = self.group_schedule
-    if schedule:
+    schedules = self.group_schedule
+    if schedules:
       w_tb = OrderedDict()
-      # create week table
-      evs = schedule.events.all()
-      w_tb = EventUtils.compute_prioritized_event_table(w_tb, weeks, evs, schedule.priority)
+      for schedule in schedules:
+        # create week table
+        evs = schedule.events.all()
+        w_tb = EventUtils.compute_prioritized_event_table(w_tb, weeks, evs, schedule.priority)
       # return all the calculated, composite, priority/conflict resolved list of events
       return EventUtils.export_event_list_from_table(w_tb)
     return []
