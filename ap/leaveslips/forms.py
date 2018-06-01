@@ -48,7 +48,10 @@ class GroupSlipForm(LeaveslipForm):
   trainees = forms.ModelMultipleChoiceField(
       queryset=Trainee.objects.all(),
       required=True,
-      widget=ModelSelect2MultipleWidget(model=Trainee),
+      widget=ModelSelect2MultipleWidget(
+        model=Trainee,
+        search_fields=['firstname__icontains', 'lastname__icontains']
+      ),
   )
 
   def __init__(self, *args, **kwargs):
