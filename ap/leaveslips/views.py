@@ -357,7 +357,9 @@ class GroupSlipAdminCreate(GroupSlipCRUDMixin, generic.CreateView):
 
 
 class GroupSlipAdminUpdate(GroupSlipCRUDMixin, generic.UpdateView):
-  success_url = reverse_lazy('leaveslips:admin-gslip')
+
+  def get_success_url(self):
+    return self.object.get_admin_url()
 
   def get_context_data(self, **kwargs):
       ctx = super(GroupSlipAdminUpdate, self).get_context_data(**kwargs)

@@ -70,7 +70,7 @@ def react_attendance_context(trainee, period=None, noForm=False):
     weeks = [period * 2, period * 2 + 1]
     start_date = term.startdate_of_period(period)
     end_date = term.enddate_of_period(period)
-    # rolls = rolls.filter(date__gte=start_date, date__lte=end_date)
+    rolls = rolls.filter(date__gte=start_date, date__lte=end_date)
     individualslips = IndividualSlip.objects.filter(Q(rolls__in=rolls))
     groupslips = groupslips.filter(start__gte=start_date, end__lte=end_date)
     disablePeriodSelect = 1
@@ -82,7 +82,7 @@ def react_attendance_context(trainee, period=None, noForm=False):
       if ev.start_datetime >= start and ev.end_datetime <= end:
         period_events.append(ev)
 
-    # events = period_events
+    events = period_events
 
   groupevents = trainee.groupevents_in_week_list(weeks) if weeks else trainee.groupevents
   groupslips = groupslips.prefetch_related('trainees')
