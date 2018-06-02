@@ -200,7 +200,7 @@ class TALeaveSlipList(GroupRequiredMixin, generic.TemplateView):
       slip.period = Term.current_term().period_from_date(slip.start.date())
       slips.append(slip)
 
-    slips = sorted(slips, key=lambda slip: slip.date, reverse=True)
+    slips = sorted(slips, key=lambda slip: slip.date)
 
     ctx['TA_list'] = TrainingAssistant.objects.filter(groups__name='regular_training_assistant')
     ctx['leaveslips'] = slips
