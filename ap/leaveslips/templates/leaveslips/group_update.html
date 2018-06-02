@@ -10,25 +10,10 @@ href="{{next_ls_url}}"
 
 {% block leaveslip_script %}
   <script>
-    var submitter_visible = {{ submitter_in_slip|yesno:"true,false" }};
     $(document).ready(() => {
       $("label[for|='id_trainees']").append(
-        '<span id="submitter" style="display: none; margin-left: 10px; font-size: 12px;">Submitter: {{ leaveslip.trainee.full_name }}</span>');
+        '<span id="submitter_display" style="margin-left: 10px; font-size: 12px;">Submitter: {{ leaveslip.trainee.full_name }}</span>');
       $("#id_trainees").djangoSelect2({width: "100%"});
-      if (submitter_visible) {
-        $("li[title|='" + "{{ leaveslip.trainee.full_name }}" + "']").css("background-color", "#FFDB77");
-      } else {
-        $("#submitter").show();
-      }
-      $("#id_trainees").on("change", function (e) {
-        var submitter = $("li[title|='" + "{{ leaveslip.trainee.full_name }}" + "']");
-        if (submitter.length) {
-          $("#submitter").fadeOut();
-          submitter.css("background-color", "#FFDB77");
-        } else {
-          $("#submitter").fadeIn();
-        }
-      });
     });
   </script>
 {% endblock %}

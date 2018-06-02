@@ -96,7 +96,6 @@ class GroupSlipUpdate(LeaveSlipUpdate):
     current_ls = self.get_object()
     current_ls.is_late = current_ls.late
     ctx['leaveslip'] = current_ls
-    ctx['submitter_in_slip'] = current_ls.trainee in current_ls.trainees.all()
     return ctx
 
   def post(self, request, **kwargs):
