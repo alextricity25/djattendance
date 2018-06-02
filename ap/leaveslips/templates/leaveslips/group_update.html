@@ -13,7 +13,7 @@ href="{{next_ls_url}}"
     var submitter_visible = {{ submitter_in_slip|yesno:"true,false" }};
     $(document).ready(() => {
       $("label[for|='id_trainees']").append(
-        '<span id="submitter" style="display: none; margin-left: 10px; font-size: 12px;">Submitter: Shaun Pan</span>');
+        '<span id="submitter" style="display: none; margin-left: 10px; font-size: 12px;">Submitter: {{ leaveslip.trainee.full_name }}</span>');
       $("#id_trainees").djangoSelect2({width: "100%"});
       if (submitter_visible) {
         $("li[title|='" + "{{ leaveslip.trainee.full_name }}" + "']").css("background-color", "#FFDB77");
