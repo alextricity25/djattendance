@@ -84,7 +84,7 @@ def react_attendance_context(trainee, period=None, noForm=False):
 
     events = period_events
 
-  groupevents = trainee.groupevents_in_week_list(weeks) if weeks else trainee.groupevents
+  groupevents = trainee.groupevents_in_week_list(weeks) if weeks else trainee.groupevents.groupevents_in_week_range()
   groupslips = groupslips.prefetch_related('trainees')
 
   events_serializer = EventWithDateSerializer

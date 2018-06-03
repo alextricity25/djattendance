@@ -501,15 +501,14 @@ class Trainee(User):
 
   def groupevents_in_week_list(self, weeks):
     schedules = self.group_schedule
-    if schedules:
-      w_tb = OrderedDict()
-      for schedule in schedules:
-        # create week table
-        evs = schedule.events.all()
-        w_tb = EventUtils.compute_prioritized_event_table(w_tb, weeks, evs, schedule.priority)
-      # return all the calculated, composite, priority/conflict resolved list of events
-      return EventUtils.export_event_list_from_table(w_tb)
-    return []
+
+    w_tb = OrderedDict()
+    for schedule in schedules:
+      # create week table
+      evs = schedule.events.all()
+      w_tb = EventUtils.compute_prioritized_event_table(w_tb, weeks, evs, schedule.priority)
+    # return all the calculated, composite, priority/conflict resolved list of events
+    return EventUtils.export_event_list_from_table(w_tb)
 
   def groupevents_in_week_range(self, start_week=0, end_week=19):
     weeks = [int(x) for x in range(start_week, end_week + 1)]
