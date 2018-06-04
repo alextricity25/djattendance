@@ -18,7 +18,7 @@ from django_countries import countries
 from houses.models import House
 from localities.models import Locality
 from schedules.models import Event, Schedule
-from schedules.utils import split_schedule
+from schedules.utils import assign_trainees_to_schedule
 from seating.models import Chart, Partial
 from teams.models import Team
 from terms.models import Term
@@ -95,22 +95,13 @@ def previous_term():
 
 
 def generate_term():
-  season, year = previous_term()
-
-  if season == "Fall":
-    season = "Spring"
-    year = year + 1
-  elif season == "Spring":
-    season = "Fall"
+  # only called if not mid_term()
+  today = datetime.now()
+  start_date = next_term_start_date(today)
+  if start_date.month <= 4:  # month chosen semi-arbitrarily
+    return "Spring", start_date.year
   else:
-    # No term found, use today's date to identify what term we are hoping to create
-    today = datetime.now().date()
-    start_date = next_term_start_date(today)
-    if start_date.month <= 4:  # month chosen semi-arbitrarily
-      return "Spring", start_date.year
-    else:
-      return "Fall", start_date.year
-  return (season, year)
+    return "Fall", start_date.year
 
 
 def deactivate_user(user):
@@ -164,7 +155,6 @@ def currently_in_term(term_start, term_end):
 def mid_term():
   """ Returns true if we are still in the current term or if the current term hasn't yet
     started yet """
-  # return False  # TODO: Remove for production
   term = Term.current_term()
   if term:
     return term.currently_in_term()
@@ -689,7 +679,7 @@ def import_csvfile(file_path):
       import_row(row)
 
   for schedule in Schedule.objects.filter(term=term):
-    schedule.assign_trainees_to_schedule()
+    assign_trainees_to_schedule(schedule)
 
   log.info("Import complete")
   return True
@@ -723,6 +713,7 @@ def migrate_schedule(schedule):
   schedule2.events.add(*schedule.events.all())
   schedule2.save()
   # new schedules do not have trainees because teams change, graduating & incoming trainees, etc.
+  # but the trainee query filter is still migrated.
   return schedule2
 
 
@@ -733,12 +724,13 @@ def migrate_schedules():
   schedules = Schedule.objects_all.filter(term=term_minus_one, import_to_next_term=True, season="All")
   schedules |= Schedule.objects_all.filter(term=term_minus_two, import_to_next_term=True, season=term.season)
 
-  if mid_term():
-    for schedule in schedules:
-      split_schedule(schedule, term.term_week_of_date(date.today()))
-  else:
-    for schedule in schedules:
-      migrate_schedule(schedule)
+  if not mid_term():
+    # to account for a migrated schedules on a failed import
+    s, y = generate_term()
+    if not (term.season == s and term.year == y):
+      # if the next term is not already created
+      for schedule in schedules:
+        migrate_schedule(schedule)
 
 
 def migrate_seating_chart(chart, term):
