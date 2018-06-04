@@ -2,7 +2,8 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.utils.deprecation import MiddlewareMixin
 
-EXEMPT_URLS = [reverse('login'), reverse('logout'), reverse('home'), reverse('web_access:get-remote-address')]
+EXEMPT_URLS = [reverse('login'), reverse('logout'), reverse('home'), reverse('web_access:get-remote-address'),
+               reverse('apimport:term_details'), reverse('apimport:process_csv'), reverse('apimport:save_data')]
 
 
 class LoginRequiredMiddleware(MiddlewareMixin):  # http://onecreativeblog.com/post/59051248/django-login-required-middleware
