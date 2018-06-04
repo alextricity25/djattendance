@@ -32,7 +32,8 @@ class InterimIntentionsAdmin(models.Model):
 class InterimIntentions(models.Model):
   INTENT_CHOICES = (
       ('R', 'Returning'),
-      ('N', 'Graduating or not returning'),
+      ('G', 'Graduating'),
+      ('N', 'Not returning'),
       ('U', 'Unsure if I will return next term'),
   )
 
@@ -57,7 +58,7 @@ class InterimIntentions(models.Model):
 
   email = models.CharField(max_length=50, blank=True)
 
-  home_phone = models.CharField(max_length=50, blank=True, default='555-555-5555')
+  home_phone = models.CharField(max_length=50, blank=True, default='')
 
   home_locality = models.CharField(max_length=50, blank=True)
 
@@ -71,7 +72,7 @@ class InterimIntentions(models.Model):
 
   intent = models.CharField(max_length=1, choices=INTENT_CHOICES, default="R")
 
-  post_training_intentions = models.CharField(max_length=3, choices=POST_INTENT_CHOICES, default='NON')
+  post_training_intentions = models.CharField(max_length=3, choices=POST_INTENT_CHOICES)
 
   post_intent_comments = models.CharField(max_length=250, blank=True)
 

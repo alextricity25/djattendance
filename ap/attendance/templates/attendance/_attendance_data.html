@@ -11,6 +11,9 @@
   {% if show %}
     var Show = '{{show}}';
   {% endif %}
+  {% if disablePeriodSelect %}
+    var DisablePeriodSelect = {{ disablePeriodSelect }};
+  {% endif %}
   {% if Today %}
     var Today = moment('{{Today}}', 'MM/DD/YYYY');
   {% endif %}

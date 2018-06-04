@@ -218,7 +218,7 @@ class Outline(Survey):
       ("EXP", "Speak my experience")
   )
   participate = models.CharField(max_length=5, choices=OUTLINE_CHOICES, null=True)
-  sentence = models.CharField(max_length=50, null=True)
+  sentence = models.CharField(max_length=500, null=True)
 
   @property
   def responded(self):

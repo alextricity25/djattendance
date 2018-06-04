@@ -56,7 +56,7 @@ class Roll(models.Model):
   def __unicode__(self):
     try:
       # return status, trainee name, and event
-      return "[%s] %s @ [%s] %s" % (self.date, self.event, self.status, self.trainee)
+      return "ID %s [%s] %s @ [%s] %s" % (self.id, self.date, self.event, self.status, self.trainee)
     except AttributeError as e:
       return str(self.id) + ": " + str(e)
 

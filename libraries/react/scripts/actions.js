@@ -10,6 +10,13 @@ export const toggleLegend = () => {
   }
 }
 
+export const TOGGLE_PERIOD_SELECT = 'TOGGLE_PERIOD_SELECT'
+export const togglePeriodSelect = () => {
+  return {
+    type: TOGGLE_PERIOD_SELECT
+  }
+}
+
 export const selectPeriod = (period) => {
   return (dispatch, getState) => {
     let dateDetails = getDateDetails(getState())
@@ -493,6 +500,10 @@ export const selectTab = (index) => {
       dispatch(resetLeaveslipForm())
       dispatch(resetRollForm())
       dispatch(deselectAllEvents())
+    }
+    if (((show === 'leaveslip' || show === 'groupslip') && (index === 0 || index === 1)) ||
+        ((show === 'summary' || show === 'roll') && (index === 2 || index === 3))) {
+      dispatch(togglePeriodSelect())
     }
     dispatch(showCalendar(index))
   }
