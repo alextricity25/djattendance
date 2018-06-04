@@ -18,11 +18,10 @@ from django_countries import countries
 from houses.models import House
 from localities.models import Locality
 from schedules.models import Event, Schedule
+from schedules.utils import split_schedule
 from seating.models import Chart, Partial
 from teams.models import Team
 from terms.models import Term
-
-# from schedules.utils import split_schedule
 
 log = logging.getLogger("apimport")
 MONDAY, SATURDAY, SUNDAY = (0, 5, 6)
@@ -676,6 +675,7 @@ def import_row(row):
 
 
 def import_csvfile(file_path):
+  term = Term.current_term()
   # sanity check
   localities, teams, residences = check_csvfile(file_path)
   if localities or teams or residences:
@@ -688,9 +688,7 @@ def import_csvfile(file_path):
     for row in reader:
       import_row(row)
 
-  # every team has one schedule
-  for team in Team.objects.all():
-    schedule = Schedule.objects.get(team_roll=team)
+  for schedule in Schedule.objects.filter(term=term):
     schedule.assign_trainees_to_schedule()
 
   log.info("Import complete")
@@ -724,6 +722,7 @@ def migrate_schedule(schedule):
   schedule2.save()
   schedule2.events.add(*schedule.events.all())
   schedule2.save()
+  # new schedules do not have trainees because teams change, graduating & incoming trainees, etc.
   return schedule2
 
 
@@ -731,17 +730,15 @@ def migrate_schedules():
   term = Term.current_term()
   term_minus_one = term_before(term)
   term_minus_two = term_before(term_minus_one)
-
-  schedule_set = []
-
   schedules = Schedule.objects_all.filter(term=term_minus_one, import_to_next_term=True, season="All")
-  schedule_set.extend(schedules)
+  schedules |= Schedule.objects_all.filter(term=term_minus_two, import_to_next_term=True, season=term.season)
 
-  schedules = Schedule.objects_all.filter(term=term_minus_two, import_to_next_term=True, season=term.season)
-  schedule_set.extend(schedules)
-
-  for schedule in schedule_set:
-    migrate_schedule(schedule)
+  if mid_term():
+    for schedule in schedules:
+      split_schedule(schedule, term.term_week_of_date(date.today()))
+  else:
+    for schedule in schedules:
+      migrate_schedule(schedule)
 
 
 def migrate_seating_chart(chart, term):

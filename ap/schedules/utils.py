@@ -115,7 +115,7 @@ def split_schedule(schedule, week):
   else:
     return schedule, s1, s2
 
-  
+
 def time_overlap(start1, end1, start2, end2):
   Range = namedtuple('Range', ['start', 'end'])
   r1 = Range(start=start1, end=end1)

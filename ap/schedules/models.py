@@ -360,7 +360,7 @@ class Schedule(models.Model):
     return EventUtils.flip_roll_list(EventUtils.export_typed_ordered_roll_list(w_tb, type))
 
   def save(self, *args, **kwargs):
-    self.save_query_filter()
+    # self.save_query_filter()
     super(Schedule, self).save(*args, **kwargs)
 
   def save_query_filter(self):

@@ -1,12 +1,10 @@
 import datetime
-from datetime import timedelta, date
-from exceptions import ValueError
-
-from django.db import models
-from django.db.models import Q
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from datetime import date, timedelta
 
 from aputils.utils import ensure_date
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.db import models
+from django.db.models import Q
 
 """ TERM models.py
 
