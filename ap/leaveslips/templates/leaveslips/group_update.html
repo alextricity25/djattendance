@@ -10,10 +10,23 @@ href="{{next_ls_url}}"
 
 {% block leaveslip_script %}
   <script>
+    function highlightSubmitter(state) {
+      var asterisk = "";
+      if (state.text == "{{ leaveslip.trainee.full_name }}") {
+        asterisk = " *"
+      }
+      var elem = '<span>' + state.text + asterisk + '</span>'
+      return elem
+    }
+
     $(document).ready(() => {
       $("label[for|='id_trainees']").append(
         '<span id="submitter_display" style="margin-left: 10px; font-size: 12px;">Submitter: {{ leaveslip.trainee.full_name }}</span>');
-      $("#id_trainees").djangoSelect2({width: "100%"});
+      $("#id_trainees").djangoSelect2({
+        width: "100%",
+        templateSelection: highlightSubmitter,
+        escapeMarkup: function(m) { return m; }
+      });
     });
   </script>
 {% endblock %}
