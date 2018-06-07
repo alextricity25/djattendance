@@ -55,7 +55,7 @@ var interim_end = "{{admin.term_begin_date}}"
 $(document).ready(() => {
 
   var interim_start = "{{interim_start|date:'m/d/Y'}}";
-  
+
   show_hide_post_interim();
 
   $("#add_row").click(add_row);
@@ -76,7 +76,7 @@ $(document).ready(() => {
 });
 
 function show_hide_post_interim(){
-    if($('#id_intent_1').is(':checked')) {
+    if($('#id_intent_1, #id_intent_2, #id_intent_3').is(':checked')) {
       $("#id_post_intent_comments").show()
       $('label[for=id_post_intent_comments]').show();
       $("#id_post_training_intentions").show()
@@ -91,9 +91,9 @@ function show_hide_post_interim(){
 
   function add_row(){
     let val = parseInt($("#id_itinerary_table tr:last").attr('id').split("_").pop());
-    dt_val = $("#id_itinerary_table tr:last #id_end").val()
+    let dt_val = $("#id_itinerary_table tr:last #id_end").val()
 
-    if (dt_val != 0) {  //TODO: validate, i.e proper format, valid date range
+    if (dt_val != 0 && dt_val != interim_end) {  //TODO: validate, i.e proper format, valid date range
       let dt = new Date(dt_val);
       $("#id_itinerary_table tr:last").clone().appendTo("#id_itinerary_table")
       val++;
@@ -105,6 +105,8 @@ function show_hide_post_interim(){
       $("#id_itinerary_table tr:last #id_end").val(date_formatter(edt));
       $($("#id_itinerary_table tr:last > td > input")[1]).datetimepicker(dt_options)
 
+    } else if (dt_val === interim_end) {
+      new Notification(Notification.SUCCESS, 'The term begins on {{admin.term_begin_date}}.').show();
     } else {
       new Notification(Notification.SUCCESS, 'Please fill out an end time before adding another row.').show();
     }
@@ -261,7 +263,7 @@ function show_hide_post_interim(){
     </div>
     <div class="row">
       <div class="col-md-2">
-        {{form.post_training_intentions.label_tag}}:
+        {{form.post_training_intentions.label_tag}}
       </div>
       <div class="col-md-2">
         {{form.post_training_intentions}}

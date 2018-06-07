@@ -1,27 +1,25 @@
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
+from collections import OrderedDict
+from datetime import date, datetime, timedelta
+
 import dateutil
-
-from django.db import models
-from django.db.models import Q
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group
-from django.contrib.postgres.fields import JSONField
-from django.core.mail import send_mail
-from django.core import validators
-from django.utils.http import urlquote
-from django.utils.functional import cached_property
-from django.utils.translation import ugettext_lazy as _
-
+from aputils.eventutils import EventUtils
 from aputils.models import Address
-from terms.models import Term
-from teams.models import Team
-from houses.models import House, Bunk
 # from services.models import Service
 from badges.models import Badge
+from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
+                                        Group, PermissionsMixin)
+from django.contrib.postgres.fields import JSONField
+from django.core import validators
+from django.core.mail import send_mail
+from django.db import models
+from django.db.models import Q
+from django.utils.functional import cached_property
+from django.utils.http import urlquote
+from django.utils.translation import ugettext_lazy as _
+from houses.models import Bunk, House
 from localities.models import Locality
-from collections import OrderedDict
-
-from aputils.eventutils import EventUtils
+from teams.models import Team
+from terms.models import Term
 
 
 """ accounts models.py
@@ -208,8 +206,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
   @property
   def age(self):
-    # calculates age perfectly even for leap years
-    return relativedelta(date.today(), self.date_of_birth).years
+    today = date.today()
+    dob = self.date_of_birth
+    return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
 
   USERNAME_FIELD = 'email'
   REQUIRED_FIELDS = []
@@ -320,7 +319,7 @@ class Trainee(User):
   # for groupslips, create a schedule named 'Group Events' filled with group events (located in static/react/scripts/testdata/groupevents.js)
   @property
   def group_schedule(self):
-    return self.schedules.filter(trainee_select='GP').first()
+    return self.schedules.filter(trainee_select='GP').order_by('priority')
 
   @property
   def active_schedules(self):
@@ -401,7 +400,7 @@ class Trainee(User):
   # Returns event list sorted in timestamp order
   # If you want to sort by name, use event_list.sort(key=operator.attrgetter('name'))
   def events_in_date_range(self, start, end, listOfSchedules=[]):
-    #check for generic group calendar
+    # check for generic group calendar
     if listOfSchedules:
       schedules = listOfSchedules
     else:
@@ -501,15 +500,16 @@ class Trainee(User):
     return self.groupevents_in_week_range()
 
   def groupevents_in_week_list(self, weeks):
-    schedule = self.group_schedule
-    if schedule:
-      w_tb = OrderedDict()
-      # create week table
+    schedules = self.group_schedule
+    w_tb = OrderedDict()
+    # create week table
+    for schedule in schedules:
       evs = schedule.events.all()
+      weeks = [int(x) for x in schedule.weeks.split(',')]
       w_tb = EventUtils.compute_prioritized_event_table(w_tb, weeks, evs, schedule.priority)
-      # return all the calculated, composite, priority/conflict resolved list of events
-      return EventUtils.export_event_list_from_table(w_tb)
-    return []
+
+    # return all the calculated, composite, priority/conflict resolved list of events
+    return EventUtils.export_event_list_from_table(w_tb)
 
   def groupevents_in_week_range(self, start_week=0, end_week=19):
     weeks = [int(x) for x in range(start_week, end_week + 1)]

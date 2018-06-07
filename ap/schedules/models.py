@@ -126,7 +126,7 @@ class Event(models.Model):
         date = self.day
       else:
         date = self.get_weekday_display()
-      return "%s %s [%s - %s] %s" % (date, self.weekday, self.start.strftime('%H:%M'), self.end.strftime('%H:%M'), self.name)
+      return "ID %s %s %s [%s - %s] %s" % (self.id, date, self.weekday, self.start.strftime('%H:%M'), self.end.strftime('%H:%M'), self.name)
     except AttributeError as e:
       return str(self.id) + ": " + str(e)
 
@@ -287,7 +287,7 @@ class Schedule(models.Model):
 
   def __unicode__(self):
     try:
-      return '[%s] %s - %s schedule' % (self.priority, self.name, self.season)
+      return 'ID %s [%s] %s - %s schedule' % (self.id, self.priority, self.name, self.season)
     except AttributeError as e:
       return str(self.id) + ": " + str(e)
 
@@ -315,9 +315,10 @@ class Schedule(models.Model):
     # print wks_reg, trainees
     # Queries schedules with week defined
     active_schedules = Schedule.current_term_schedules()
-    active_schedules = active_schedules.filter(is_deleted=False, weeks__regex=wks_reg, trainees__in=trainees)
+    active_schedules = active_schedules.filter(is_deleted=False, weeks__regex=wks_reg, trainees__in=trainees).exclude(trainee_select='GP')
     if team:
       active_schedules = active_schedules.filter(team=team)
+
     active_schedules = active_schedules.distinct().order_by('priority')
     return active_schedules
 

@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import Q, Sum
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from accounts.models import Trainee
 from services.models import Worker, WeekSchedule
 from services.models import Qualification
@@ -86,7 +86,7 @@ class WorkerGroup(models.Model):
 
   # Algorithm will assign higher priority first
   assign_priority = models.PositiveSmallIntegerField(default=1)
-
+  permission_groups = models.ManyToManyField(Group, related_name='service_group', blank=True)
   last_modified = models.DateTimeField(auto_now=True)
 
   @cached_property
@@ -143,13 +143,11 @@ class WorkerGroup(models.Model):
     workers = self.get_workers
     return ', '.join([w.trainee.full_name for w in workers])
 
-
   def __unicode__(self):
     try:
       return "%s (%s)" % (self.name, self.description)
     except AttributeError as e:
       return str(self.id) + ": " + str(e)
-
 
 
 # method for updating
