@@ -584,8 +584,11 @@ class AllAttendanceViewSet(BulkModelViewSet):
 
 def finalize(request):
   if not request.method == 'POST':
-    return HttpResponseBadRequest('Request must use POST method')
+    return HttpResponseBadRequest('Request must use POST method')  
+  print request.body
   data = json.loads(request.body)
+  print data
+
   trainee = get_object_or_404(Trainee, id=data['trainee']['id'])
   submitter = get_object_or_404(Trainee, id=data['submitter']['id'])
   period_start = dateutil.parser.parse(data['weekStart'])

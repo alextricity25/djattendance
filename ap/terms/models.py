@@ -211,7 +211,7 @@ class Term(models.Model):
       # by default return last date in term
       return (19, 6)
 
-  def is_attendance_finalized(self, week, trainee):
+  def is_attendance_finalized(self, week, trainee, monitor=None):
     today = datetime.date.today()
     term = self.current_term()
     week_start = term.startdate_of_week(week)

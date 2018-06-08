@@ -181,14 +181,14 @@
           text: 'Filters',
           buttons: ["first_year", "second_year", "brothers", "sisters"]
         },
-        
+
         "self_attendance",
         {% endifusergroup %}
       ],
     });
 
     // normal HC or TM or YPC can only see trainees not on self-attendance
-    selfattendance_filter("False")    
+    selfattendance_filter("False")
 
     function getParamsForColumn(index) {
       var selects = $('.set_all');
@@ -213,7 +213,8 @@
     }).on('focus', '.sectionInputs', function (e){
       var button = $(e.currentTarget);
       button.removeClass('danger');
-      button.selectText();
+      // this was throwing an
+      // button.selectText();
     }).on('blur', '.sectionInputs', function(e) {
       //Content edit
       var button = $(e.currentTarget);
@@ -247,7 +248,25 @@
       var select = $(e.currentTarget);
       var col = select.data("col");
       $("td[data-col='"+col+"'").text(select.val().trim()).blur();
+    }).on('click', '#finalize-table', function(e){
+      $("tbody > tr > th").each(function(){
+        var data = '{"trainee": {"id":'+$(this).attr('data-row')+' }, "submitter":{"id":'+{{user.id}}+'}}';
+
+        $.ajax({
+          type: "POST",
+          url: "{% url 'attendance:finalize' %}",
+          data: data,
+          success: function(response){
+            alert("hello!")
+          }
+        })
+        // console.log(data)
+      })
+
+
     });
+
+
     $("#week_menu").on("change", function(e) {
       $(e.currentTarget).closest("form").submit();
     });
@@ -407,6 +426,7 @@
             {% endfor %}
           </tbody>
         </table>
+        <button id="finalize-table" type="submit" class="btn btn-default">Submit</button>
         {% else %}
         No rolls for this week
         {% endif %}
