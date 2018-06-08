@@ -250,17 +250,28 @@
       $("td[data-col='"+col+"'").text(select.val().trim()).blur();
     }).on('click', '#finalize-table', function(e){
       $("tbody > tr > th").each(function(){
-        var data = '{"trainee": {"id":'+$(this).attr('data-row')+' }, "submitter":{"id":'+{{user.id}}+'}}';
+        var data = {}
+        data.trainee = {"id": $(this).attr('data-row')}
+        data.submitter = {"id": {{user.id}}}
+
+        yr = first_day_term.slice(0, 4)
+        week = $("#week_menu").find(":selected").text()
+        start_date = week.slice(week.indexOf(':')+1, week.indexOf('-')-1) + ' ' + yr
+        end_date = week.slice(week.indexOf('-')+1) + ' ' + yr
+        s_date = moment(start_date, ' ddd MMM D YYYY')
+        e_date = moment(end_date, ' ddd MMM D YYYY')
+        data.weekStart = s_date.format('YYYY-MM-DD')
+        data.weekEnd = e_date.format('YYYY-MM-DD')
+        data.event_type = "{{event_type}}"
 
         $.ajax({
           type: "POST",
           url: "{% url 'attendance:finalize' %}",
-          data: data,
+          data: JSON.stringify(data),
           success: function(response){
             alert("hello!")
           }
         })
-        // console.log(data)
       })
 
 

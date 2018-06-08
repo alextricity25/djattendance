@@ -347,10 +347,10 @@ class TableRollsView(GroupRequiredMixin, AttendanceView):
   group_required = [u'attendance_monitors', u'training_assistant']
 
   def set_week(self):
-    selected_week = int(self.request.POST.get('week'))    
+    selected_week = int(self.request.POST.get('week'))
     return CURRENT_TERM.startdate_of_week(selected_week)
 
-  def post(self, request, *args, **kwargs):    
+  def post(self, request, *args, **kwargs):
     kwargs['selected_date'] = self.set_week()
     context = self.get_context_data(**kwargs)
     return super(TableRollsView, self).render_to_response(context)
@@ -467,12 +467,12 @@ class HouseRollsView(TableRollsView):
 
     trainees = Trainee.objects.filter(house=house)
     if not self.request.user.has_group(['attendance_monitors']):
-      trainees = trainees.filter(house=house).filter(self_attendance=False) 
+      trainees = trainees.filter(house=house).filter(self_attendance=False)
 
     kwargs['trainees'] = trainees
     kwargs['event_type'] = 'H'
     ctx = super(HouseRollsView, self).get_context_data(**kwargs)
-    ctx['title'] = "House Rolls"    
+    ctx['title'] = "House Rolls"
     ctx['house'] = house
     if self.request.user.has_group(['attendance_monitors', 'training_assistant']):
       ctx['houses'] = House.objects.filter(used=True).order_by("name").exclude(name__in=['TC', 'MCC', 'COMMUTER']).values("pk", "name")
@@ -506,7 +506,7 @@ class TeamRollsView(TableRollsView):
     kwargs['trainees'] = trainees
     kwargs['event_type'] = 'T'
     ctx = super(TeamRollsView, self).get_context_data(**kwargs)
-    ctx['title'] = "Team Rolls"    
+    ctx['title'] = "Team Rolls"
     ctx['team'] = team
     if self.request.user.has_group(['attendance_monitors', 'training_assistant']):
       ctx['teams'] = Team.objects.all().order_by("type", "name").values("pk", "name")
@@ -584,16 +584,16 @@ class AllAttendanceViewSet(BulkModelViewSet):
 
 def finalize(request):
   if not request.method == 'POST':
-    return HttpResponseBadRequest('Request must use POST method')  
-  print request.body
+    return HttpResponseBadRequest('Request must use POST method')
   data = json.loads(request.body)
-  print data
 
   trainee = get_object_or_404(Trainee, id=data['trainee']['id'])
   submitter = get_object_or_404(Trainee, id=data['submitter']['id'])
   period_start = dateutil.parser.parse(data['weekStart'])
   period_end = dateutil.parser.parse(data['weekEnd'])
   rolls_this_week = trainee.rolls.filter(date__gte=period_start, date__lte=period_end)
+  if data['event_type']:
+    rolls_this_week = rolls_this_week.filter(event__type=data['event_type'])
   if rolls_this_week.exists():
     rolls_this_week.update(finalized=True)
   else:
@@ -607,7 +607,8 @@ def finalize(request):
   listJSONRenderer = JSONRenderer()
   rolls = listJSONRenderer.render(RollSerializer(Roll.objects.filter(trainee=trainee), many=True).data)
 
-  return JsonResponse({'rolls': json.loads(rolls)})
+  # return JsonResponse({'rolls': json.loads(rolls)})
+  return JsonResponse({'Success': 'Yes!'})
 
 
 @group_required(('attendance_monitors',))
