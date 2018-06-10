@@ -141,12 +141,14 @@ class DisciplineDetailView(DetailView):
     if ('penalty_num' in request.POST):
       penalty_num = int(request.POST['penalty_num'])
       if 'decrease_penalty' in request.POST:
+        """decrease quantity of Discipline object and delete the summary object
         self.get_object().summary_set.create(
             content='approved hard copy summary',
             chapter=0,
             hard_copy=True,
             approved=True
-        )
+        )"""
+        self.get_object().decrease_penalty(penalty_num)
         messages.success(request, "Hard Copy Submission Created!")
       
       if 'increase_penalty' in request.POST:
