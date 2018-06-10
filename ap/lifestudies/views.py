@@ -138,17 +138,21 @@ class DisciplineDetailView(DetailView):
       approve_summary_pk = int(request.POST['summary_pk'])
       summary = Summary.objects.get(pk=approve_summary_pk)
       post_summary(summary, request)
-    if 'hard_copy' in request.POST:
-      self.get_object().summary_set.create(
-          content='approved hard copy summary',
-          chapter=0,
-          hard_copy=True,
-          approved=True
-      )
-      messages.success(request, "Hard Copy Submission Created!")
-    if 'increase_penalty' in request.POST:
-      self.get_object().increase_penalty()
-      messages.success(request, "Increased Summary by 1")
+    if ('penalty_num' in request.POST):
+      penalty_num = int(request.POST['penalty_num'])
+      if 'decrease_penalty' in request.POST:
+        self.get_object().summary_set.create(
+            content='approved hard copy summary',
+            chapter=0,
+            hard_copy=True,
+            approved=True
+        )
+        messages.success(request, "Hard Copy Submission Created!")
+      
+      if 'increase_penalty' in request.POST:
+        self.get_object().increase_penalty(penalty_num)
+        messages.success(request, "Increased Summary by x")
+
     return HttpResponseRedirect(reverse_lazy('lifestudies:discipline_list'))
 
 

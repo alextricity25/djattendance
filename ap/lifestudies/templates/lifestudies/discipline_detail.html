@@ -8,15 +8,15 @@
 
   <h2>
     {{discipline.trainee.full_name}}
-
     <div class="pull-right">
       <form action="" method="post">
         {% csrf_token %}
-        <button type="sumbit" name="increase_penalty" class="btn btn-default btn-sm">
+        <input name="penalty_num" value="1">
+        <button type="submit" name="increase_penalty" class="btn btn-default btn-sm">
           <span class="glyphicon glyphicon-plus-sign"></span>
           Increase Penalty
         </button>
-        <button type="submit" name="hard_copy" class="btn btn-default btn-sm">
+        <button type="submit" name="decrease_penalty" class="btn btn-default btn-sm">
           <span class="glyphicon glyphicon-plus-sign"></span> Decrease Penalty
         </button>
       </form>
