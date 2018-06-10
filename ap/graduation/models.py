@@ -220,6 +220,9 @@ class Outline(Survey):
   participate = models.CharField(max_length=5, choices=OUTLINE_CHOICES, null=True)
   sentence = models.CharField(max_length=500, null=True)
 
+  speaking_section = models.CharField(max_length=50, null=True)
+  speaking = models.TextField(blank=True, null=True)
+
   @property
   def responded(self):
     return self.sections or self.participate

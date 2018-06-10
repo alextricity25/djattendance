@@ -61,7 +61,7 @@ class IndividualSlipUpdate(LeaveSlipUpdate):
     try:
       ctx['next_ls_url'] = find_next_leaveslip(current_ls).get_ta_update_url()
     except AttributeError:
-      ctx['next_ls_url'] = "%s?status=P&ta=%s" % (reverse('leaveslips:ta-leaveslip-list'), ctx['default_transfer_ta'].id)
+      ctx['next_ls_url'] = "%s?status=P&ta=%s" % (reverse('leaveslips:ta-leaveslip-list'), self.request.user.id)
     ctx['verbose_name'] = current_ls._meta.verbose_name
     current_ls.is_late = current_ls.late
     ctx['leaveslip'] = current_ls
@@ -92,7 +92,7 @@ class GroupSlipUpdate(LeaveSlipUpdate):
     try:
       ctx['next_ls_url'] = find_next_leaveslip(self.get_object()).get_ta_update_url()
     except AttributeError:
-      ctx['next_ls_url'] = "%s?status=P&ta=%s" % (reverse('leaveslips:ta-leaveslip-list'), ctx['default_transfer_ta'].id)
+      ctx['next_ls_url'] = "%s?status=P&ta=%s" % (reverse('leaveslips:ta-leaveslip-list'), self.request.user.id)
     current_ls = self.get_object()
     current_ls.is_late = current_ls.late
     ctx['leaveslip'] = current_ls
@@ -200,7 +200,7 @@ class TALeaveSlipList(GroupRequiredMixin, generic.TemplateView):
       slip.period = Term.current_term().period_from_date(slip.start.date())
       slips.append(slip)
 
-    slips = sorted(slips, key=lambda slip: slip.date, reverse=True)
+    slips = sorted(slips, key=lambda slip: slip.date)
 
     ctx['TA_list'] = TrainingAssistant.objects.filter(groups__name='regular_training_assistant')
     ctx['leaveslips'] = slips
