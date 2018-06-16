@@ -136,7 +136,7 @@ function generateBody(date, list_of_rooms) {
             {% if view.request.user|is_TA %}
             if (i == reservation.fields.slot_start+2) {
               row[j + 1] += `<a href="${DELETE_URL}${reservation.pk}">
-                              <button class="btn btn-danger delete_request_button" type="submit" title="Delete"/>
+                              <button class="btn btn-danger delete-request-button" type="submit" title="Delete"/>
                                 <span class="glyphicon glyphicon-trash"></span>
                               </button>
                             </a>`

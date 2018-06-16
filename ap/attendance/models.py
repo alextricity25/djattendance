@@ -62,6 +62,7 @@ class Roll(models.Model):
 
   class Meta:
     ordering = ['-last_modified']
+    unique_together = ('trainee', 'event', 'date', 'submitted_by')
 
   @staticmethod
   def update_or_create(validated_data):

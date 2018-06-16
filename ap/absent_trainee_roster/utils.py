@@ -103,8 +103,6 @@ def calculate_trainee_absent_freq(date):
 
 def send_absentee_report(year, month, day):
   d = date(int(year), int(month), int(day))
-  if d.weekday() == 0:
-    return "Today's a monday, so no absent trainee roster"
   ctx = build_report_ctx(d)
 
   subject = "Absent Trainee Roster for " + str(d)
