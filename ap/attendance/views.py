@@ -1,5 +1,5 @@
 import json
-import copy
+from copy import copy, deepcopy
 from collections import OrderedDict
 from datetime import date, datetime, time, timedelta
 
@@ -548,7 +548,7 @@ class RollViewSet(BulkModelViewSet):
   filter_class = RollFilter
 
   def update_or_create(self, data):
-    adjusted_data = copy.deepcopy(data)
+    adjusted_data = deepcopy(data)
     adjusted_data['submitted_by'] = self.request.user.id
     serializer = self.get_serializer(data=adjusted_data)
     serializer.is_valid(raise_exception=True)
