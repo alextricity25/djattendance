@@ -1,6 +1,6 @@
 import json
+import copy
 from collections import OrderedDict
-from copy import copy
 from datetime import date, datetime, time, timedelta
 
 import dateutil.parser
@@ -559,7 +559,7 @@ class RollViewSet(BulkModelViewSet):
     submitted_data = request.data
     if isinstance(submitted_data, dict):
       response_data = self.update_or_create(submitted_data)
-     elif isinstance(submitted_data, list):
+    elif isinstance(submitted_data, list):
       response_data = [self.update_or_create(dic) for dic in submitted_data]
 
     return Response(response_data, status=status.HTTP_201_CREATED)
