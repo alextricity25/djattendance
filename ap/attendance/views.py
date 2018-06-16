@@ -28,9 +28,10 @@ from leaveslips.serializers import (GroupSlipSerializer,
                                     GroupSlipTADetailSerializer,
                                     IndividualSlipSerializer,
                                     IndividualSlipTADetailSerializer)
-from rest_framework import filters
+from rest_framework import filters, status
 from rest_framework.renderers import JSONRenderer
 from rest_framework_bulk import BulkModelViewSet
+from rest_framework.response import Response
 from schedules.constants import WEEKDAYS
 from schedules.models import Event, Schedule
 from schedules.serializers import (AttendanceEventWithDateSerializer,
@@ -545,6 +546,23 @@ class RollViewSet(BulkModelViewSet):
   serializer_class = RollSerializer
   filter_backends = (filters.DjangoFilterBackend,)
   filter_class = RollFilter
+
+  def update_or_create(self, data):
+    adjusted_data = copy.deepcopy(data)
+    adjusted_data['submitted_by'] = self.request.user.id
+    serializer = self.get_serializer(data=adjusted_data)
+    serializer.is_valid(raise_exception=True)
+    self.perform_create(serializer)
+    return serializer.data
+
+  def create(self, request, *args, **kwargs):
+    submitted_data = request.data
+    if isinstance(submitted_data, dict):
+      response_data = self.update_or_create(submitted_data)
+     elif isinstance(submitted_data, list):
+      response_data = [self.update_or_create(dic) for dic in submitted_data]
+
+    return Response(response_data, status=status.HTTP_201_CREATED)
 
   def get_queryset(self):
     user = self.request.user
