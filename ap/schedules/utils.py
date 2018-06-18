@@ -1,4 +1,3 @@
-from collections import namedtuple
 from datetime import datetime, timedelta
 
 from terms.models import Term
@@ -118,6 +117,7 @@ def split_schedule(schedule, week):
     return schedule.parent_schedule, s1, s2
   else:
     return schedule, s1, s2
+
 
 def assign_trainees_to_schedule(schedule):
     """

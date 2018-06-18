@@ -1,20 +1,18 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
+from accounts.models import Trainee
+from aputils.eventutils import EventUtils
+from aputils.models import QueryFilter
+from aputils.utils import comma_separated_field_is_in_regex
+from django.core.urlresolvers import reverse
+from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
 from django.db.models import Q
-from django.core.validators import validate_comma_separated_integer_list
-
-from terms.models import Term
-from accounts.models import Trainee
-from seating.models import Chart
-from aputils.models import QueryFilter
-from teams.models import Team
-
-from aputils.utils import comma_separated_field_is_in_regex
-from aputils.eventutils import EventUtils
-
 from schedules.constants import WEEKDAYS
-from django.core.urlresolvers import reverse
+from seating.models import Chart
+from teams.models import Team
+from terms.models import Term
+
 
 """ SCHEDULES models.py
 This schedules module is for representing weekly trainee schedules.
