@@ -1,6 +1,6 @@
 import json
+from copy import copy, deepcopy
 from collections import OrderedDict
-from copy import copy
 from datetime import date, datetime, time, timedelta
 
 import dateutil.parser
@@ -28,9 +28,10 @@ from leaveslips.serializers import (GroupSlipSerializer,
                                     GroupSlipTADetailSerializer,
                                     IndividualSlipSerializer,
                                     IndividualSlipTADetailSerializer)
-from rest_framework import filters
+from rest_framework import filters, status
 from rest_framework.renderers import JSONRenderer
 from rest_framework_bulk import BulkModelViewSet
+from rest_framework.response import Response
 from schedules.constants import WEEKDAYS
 from schedules.models import Event, Schedule
 from schedules.serializers import (AttendanceEventWithDateSerializer,
@@ -49,53 +50,67 @@ from .serializers import AttendanceSerializer, RollFilter, RollSerializer
 # universal variable for this term
 CURRENT_TERM = Term.current_term()
 
-
-# if the attendance monitors inputs rolls for a trainee on self attendance
-# but the trainee doesn't input his/her own rolls, then the trainee shouldn't see these rolls
-# unless AMs pull audit
-
-def react_attendance_context(trainee, period=None, noForm=False):
+# this function feeds the context data needed for rendering attendance in react
+# it splits up into two case and two subcase for one of them
+# start by initializing all common things, goal of this sequence and embdded if statements is to reduce database calls
+# first case is that this is being used to render a detail leaveslips view, either individual or group
+# if it's individual, then we'll only put data for the individual events and individual slip along with the associated rolls
+# if it's group, then we'll only put data for group events and group leaveslips,
+# second case is that this is being used to render the personal attendance for trainee/ta
+# so we render everything, rolls, individual events, individual leaveslips, group events, group leaveslips
+def react_attendance_context(trainee, request_params=None):
   listJSONRenderer = JSONRenderer()
-  rolls = Roll.objects.filter(trainee=trainee)
-  if trainee.self_attendance:
-    rolls = rolls.filter(submitted_by=trainee)
-  individualslips = IndividualSlip.objects.filter(trainee=trainee)
-  groupslips = GroupSlip.objects.filter(Q(trainees__in=[trainee])).distinct()
 
-  # events_in_week_list needs to be fixed
-  # line below is currently replaced with for loop in the if statement
-  # events = trainee.events_in_week_list(weeks) if weeks else trainee.events
-  events = trainee.events
-  weeks = None
-  disablePeriodSelect = 0
-  if period is not None:
+  rolls = Roll.objects.none()
+  individualslips = IndividualSlip.objects.none()
+  events = Event.objects.none()
+
+  groupslips = GroupSlip.objects.none()
+  groupevents = Event.objects.none()
+
+  if request_params:
+    period = request_params['period']
     weeks = [period * 2, period * 2 + 1]
     start_date = CURRENT_TERM.startdate_of_period(period)
     end_date = CURRENT_TERM.enddate_of_period(period)
-    # rolls = rolls.filter(date__gte=start_date, date__lte=end_date)
-    individualslips = IndividualSlip.objects.filter(Q(rolls__in=rolls))
-    groupslips = groupslips.filter(start__gte=start_date, end__lte=end_date)
     disablePeriodSelect = 1
 
-    period_events = []
-    start = datetime.combine(CURRENT_TERM.startdate_of_week(weeks[0]), time())
-    end = datetime.combine(CURRENT_TERM.enddate_of_week(weeks[-1] + 1), time())
-    for ev in events:
-      if ev.start_datetime >= start and ev.end_datetime <= end:
-        period_events.append(ev)
+    if request_params['leaveslip_type'] == 'individual':
+      individualslips = IndividualSlip.objects.filter(pk=request_params['object_id'])
+      rolls = individualslips[0].rolls.all()
+      if trainee.self_attendance:
+        rolls = rolls.filter(submitted_by=trainee)
 
-    events = period_events
+      period_events = []
+      start = datetime.combine(CURRENT_TERM.startdate_of_week(weeks[0]), time())
+      end = datetime.combine(CURRENT_TERM.enddate_of_week(weeks[-1] + 1), time())
+      for ev in trainee.events:
+        if ev.start_datetime >= start and ev.end_datetime <= end:
+          period_events.append(ev)
+      events = period_events
 
-  groupevents = trainee.groupevents_in_week_list(weeks) if weeks else trainee.groupevents
-  groupslips = groupslips.prefetch_related('trainees')
+    elif request_params['leaveslip_type'] == 'group':
+      groupslips = GroupSlip.objects.filter(pk=request_params['object_id']).prefetch_related('trainees')
+      groupevents = trainee.groupevents_in_week_list(weeks)
 
-  events_serializer = EventWithDateSerializer
-  individual_serializer = IndividualSlipTADetailSerializer
-  group_serializer = GroupSlipTADetailSerializer
-  trainees_bb = {}
-  TAs_bb = {}
-  trainee_select_form = None
-  if not noForm:
+    events_serializer = EventWithDateSerializer
+    individual_serializer = IndividualSlipTADetailSerializer
+    group_serializer = GroupSlipTADetailSerializer
+    trainees_bb = {}
+    TAs_bb = {}
+    trainee_select_form = None
+
+  else:
+    weeks = None
+    disablePeriodSelect = 0
+
+    rolls = trainee.current_rolls
+    events = trainee.events
+    individualslips = IndividualSlip.objects.filter(trainee=trainee)
+
+    groupevents = trainee.groupevents
+    groupslips = GroupSlip.objects.filter(Q(trainees__in=[trainee])).distinct()
+
     events_serializer = AttendanceEventWithDateSerializer
     individual_serializer = IndividualSlipSerializer
     group_serializer = GroupSlipSerializer
@@ -342,7 +357,7 @@ class AuditRollsView(GroupRequiredMixin, TemplateView):
 
 
 class TableRollsView(GroupRequiredMixin, AttendanceView):
-  template_name = 'attendance/roll_table.html'
+  template_name = 'attendance/roll_table_admin.html'
   context_object_name = 'context'
   group_required = [u'attendance_monitors', u'training_assistant']
 
@@ -451,16 +466,16 @@ class HouseRollsView(TableRollsView):
 
   def post(self, request, *args, **kwargs):
     if self.request.user.has_group(['attendance_monitors', 'training_assistant']):
-      kwargs['house'] = self.request.POST.get('house')
+      kwargs['house_id'] = self.request.POST.get('house')
 
     kwargs['selected_date'] = self.set_week()
     context = self.get_context_data(**kwargs)
     return super(HouseRollsView, self).render_to_response(context)
 
   def get_context_data(self, **kwargs):
-    if 'house' in kwargs.keys():
-      house_name = kwargs['house']
-      house = House.objects.get(name=house_name)
+    if 'house_id' in kwargs.keys():
+      house_id = kwargs['house_id']
+      house = House.objects.get(pk=house_id)
     elif trainee_from_user(self.request.user):
       house = self.request.user.house
     else:
@@ -475,7 +490,7 @@ class HouseRollsView(TableRollsView):
     kwargs['monitor'] = 'HC'
     ctx = super(HouseRollsView, self).get_context_data(**kwargs)
     ctx['title'] = "House Rolls"
-    ctx['house'] = house
+    ctx['selected_house_id'] = house.id
     if self.request.user.has_group(['attendance_monitors', 'training_assistant']):
       ctx['houses'] = House.objects.filter(used=True).order_by("name").exclude(name__in=['TC', 'MCC', 'COMMUTER']).values("pk", "name")
     return ctx
@@ -487,16 +502,16 @@ class TeamRollsView(TableRollsView):
 
   def post(self, request, *args, **kwargs):
     if self.request.user.has_group(['attendance_monitors', 'training_assistant']):
-      kwargs['team'] = self.request.POST.get('team')
+      kwargs['team_id'] = self.request.POST.get('team')
 
     kwargs['selected_date'] = self.set_week()
     context = self.get_context_data(**kwargs)
     return super(TeamRollsView, self).render_to_response(context)
 
   def get_context_data(self, **kwargs):
-    if 'team' in kwargs.keys():
-      team_name = kwargs['team']
-      team = Team.objects.get(name=team_name)
+    if 'team_id' in kwargs.keys():
+      team_id = kwargs['team_id']
+      team = Team.objects.get(pk=team_id)
     elif trainee_from_user(self.request.user):
       team = self.request.user.team
     else:
@@ -511,7 +526,7 @@ class TeamRollsView(TableRollsView):
     kwargs['monitor'] = 'TM'
     ctx = super(TeamRollsView, self).get_context_data(**kwargs)
     ctx['title'] = "Team Rolls"
-    ctx['team'] = team
+    ctx['selected_team_id'] = team.id
     if self.request.user.has_group(['attendance_monitors', 'training_assistant']):
       ctx['teams'] = Team.objects.all().order_by("type", "name").values("pk", "name")
     return ctx
@@ -534,6 +549,7 @@ class RFIDRollsView(TableRollsView):
   def get_context_data(self, **kwargs):
     kwargs['trainees'] = Trainee.objects.all()
     kwargs['event_type'] = 'RF'
+    kwargs['monitor'] = 'RF'
     ctx = super(RFIDRollsView, self).get_context_data(**kwargs)
     ctx['title'] = "RFID Rolls"
     return ctx
@@ -544,6 +560,23 @@ class RollViewSet(BulkModelViewSet):
   serializer_class = RollSerializer
   filter_backends = (filters.DjangoFilterBackend,)
   filter_class = RollFilter
+
+  def update_or_create(self, data):
+    adjusted_data = deepcopy(data)
+    adjusted_data['submitted_by'] = self.request.user.id
+    serializer = self.get_serializer(data=adjusted_data)
+    serializer.is_valid(raise_exception=True)
+    self.perform_create(serializer)
+    return serializer.data
+
+  def create(self, request, *args, **kwargs):
+    submitted_data = request.data
+    if isinstance(submitted_data, dict):
+      response_data = self.update_or_create(submitted_data)
+    elif isinstance(submitted_data, list):
+      response_data = [self.update_or_create(dic) for dic in submitted_data]
+
+    return Response(response_data, status=status.HTTP_201_CREATED)
 
   def get_queryset(self):
     user = self.request.user
@@ -695,6 +728,29 @@ class RollCRUDMixin(GroupRequiredMixin):
   form_class = RollAdminForm
   group_required = [u'attendance_monitors', u'training_assistant']
 
+  def form_valid(self, form):  # not used by delete-view
+    r = form.instance
+    rolls = Roll.objects.filter(trainee=r.trainee, event=r.event, date=r.date).exclude(id=r.id)
+
+    if rolls.exists():
+      current = rolls.first()
+      msg = 'This is a duplicate of %s.' % current
+      # trainees on self attendance can have two rolls for any event on the same date given
+      # that one is submitted by themselves and another one is not
+      if r.trainee.self_attendance:
+        if current.self_submitted and r.self_submitted:
+          form._errors[NON_FIELD_ERRORS] = ErrorList([msg])
+          return super(RollCRUDMixin, self).form_invalid(form)
+        elif not current.self_submitted and not r.self_submitted:
+          form._errors[NON_FIELD_ERRORS] = ErrorList([msg])
+          return super(RollCRUDMixin, self).form_invalid(form)
+      # if trainee not self_att and other roll exists, it's a duplicate
+      else:
+        form._errors[NON_FIELD_ERRORS] = ErrorList([msg])
+        return super(RollCRUDMixin, self).form_invalid(form)
+
+    return super(RollCRUDMixin, self).form_valid(form)
+
 
 class RollAdminCreate(RollCRUDMixin, CreateView):
   def get_context_data(self, **kwargs):
@@ -717,25 +773,23 @@ class RollAdminUpdate(RollCRUDMixin, UpdateView):
     kwargs['trainee'] = self.get_object().trainee
     return kwargs
 
-  def form_valid(self, form):
-    r = form.instance
-    rolls = Roll.objects.filter(trainee=r.trainee, event=r.event, date=r.date).exclude(id=r.id)
-    AMS = Trainee.objects.filter(groups__name='attendance_monitors')
-    if not r.trainee.self_attendance:
-      if rolls.exists():
-        form._errors[NON_FIELD_ERRORS] = ErrorList([u'This is a duplicate roll.'])
-        # if trainee not self_att and other roll exists, it's a duplicate
-        return super(RollAdminUpdate, self).form_invalid(form)
-    else:
-      if rolls.exists() and r.submitted_by not in AMS:
-        form._errors[NON_FIELD_ERRORS] = ErrorList([u'This is a duplicate. Submitted_by should be an AM.'])
-        # if trainee on self_att and other roll exists, new submitted roll must by AM
-        return super(RollAdminUpdate, self).form_invalid(form)
-    return super(RollAdminUpdate, self).form_valid(form)
-
 
 class RollAdminDelete(RollCRUDMixin, DeleteView):
   success_url = reverse_lazy('attendance:admin-roll-create')
+  template_name = 'attendance/roll_confirm_delete.html'
+
+  def get_context_data(self, **kwargs):
+    ctx = super(RollAdminDelete, self).get_context_data(**kwargs)
+    ctx['page_title'] = 'Delete Roll'
+    ctx['button_label'] = 'Delete'
+    return ctx
+
+  def get_success_url(self):
+    rolls = Roll.objects.all()
+    if rolls.exists():
+      return reverse_lazy('attendance:admin-roll', kwargs={'pk': rolls.first().pk})
+    else:
+      return self.success_url
 
 
 class TraineeAttendanceAdminView(TemplateView):

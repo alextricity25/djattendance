@@ -21,7 +21,6 @@ from .models import Classnotes
 from .forms import NewClassnotesForm, EditClassnotesForm, ApproveClassnotesForm
 from .serializers import ClassnotesSerializer
 
-from attendance.utils import Period
 from classnotes.utils import assign_classnotes
 
 

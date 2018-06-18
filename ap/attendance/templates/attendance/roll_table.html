@@ -1,13 +1,7 @@
-{% extends 'base.html' %}
 {% load staticfiles %}
 {% load common_tags %}
 
-{% block title %}
-{{title}}
-{% endblock %}
-
 {% block scripts %}
-{{ block.super }}
 <script>
   var ATTENDANCE_TYPE = ['', 'P','A','T','U','L'];
   var table;
@@ -64,7 +58,6 @@
       r_term += "3|4 ";
     }
     r_term = "("+r_term.substring(0, r_term.length-1)+")";
-    console.log(r_term)
     table.column(1).search(r_term, true, false).draw();
   }
 
@@ -181,14 +174,14 @@
           text: 'Filters',
           buttons: ["first_year", "second_year", "brothers", "sisters"]
         },
-        
+
         "self_attendance",
         {% endifusergroup %}
       ],
     });
 
     // normal HC or TM or YPC can only see trainees not on self-attendance
-    selfattendance_filter("False")    
+    selfattendance_filter("False")
 
     function getParamsForColumn(index) {
       var selects = $('.set_all');
@@ -213,7 +206,6 @@
     }).on('focus', '.sectionInputs', function (e){
       var button = $(e.currentTarget);
       button.removeClass('danger');
-      button.selectText();
     }).on('blur', '.sectionInputs', function(e) {
       //Content edit
       var button = $(e.currentTarget);
@@ -248,33 +240,16 @@
       var col = select.data("col");
       $("td[data-col='"+col+"'").text(select.val().trim()).blur();
     });
-    $("#week_menu").on("change", function(e) {
+
+    $("#week_menu, #team_menu, #house_menu").on("change", function(e) {
       $(e.currentTarget).closest("form").submit();
     });
-    if ("{{event_type}}" == "T") {
-      {% for t in teams %}
-        $("#team_menu").append($("<option />").val("{{t.name}}").text("{{t.name}}"));
-      {% endfor %}
-      $("#team_menu option[value='{{team}}']").attr("selected", "selected");
-      $("#team_menu").on("change", function(e) {
-        $(e.currentTarget).closest("form").submit();
-      });
-    } else if ("{{event_type}}" == "H") {
-      {% for h in houses %}
-        $("#house_menu").append($("<option />").val("{{h.name}}").text("{{h.name}}"));
-      {% endfor %}
 
-      $("#house_menu option[value='{{house}}']").attr("selected", "selected");
-      $("#house_menu").on("change", function(e) {
-        $(e.currentTarget).closest("form").submit();
-      });
-    }
   });
 </script>
 {% endblock %}
 
 {% block references %}
-{{ block.super }}
 <link rel="stylesheet" href="{% static 'seating/css/seating.css' %}" />
 <style>
 .tab-pane:not(.active) {
@@ -299,10 +274,19 @@
           {% ifusergroup attendance_monitors %}
             {% if event_type == "T" %}
               Team:
-              <select id="team_menu" name="team" size="0" ></select>
+              <select id="team_menu" name="team" size="0" >
+                {% for t in teams %}
+                <option value="{{t.pk}}" {% if t.pk == selected_team_id %} selected="selected" {% endif %} >{{t.name}}</option>
+                {% endfor %}
+              </select>
             {% elif event_type == "H" %}
               House:
-              <select id="house_menu" name="house" size="0" ></select>
+              <select id="house_menu" name="house" size="0" >
+                {% for h in houses %}
+                <option value="{{h.pk}}" {% if h.pk == selected_house_id %} selected="selected" {% endif %}>{{h.name}}</option>
+                {% endfor %}
+
+              </select>
             {% endif %}
           {% endifusergroup %}
         </form>

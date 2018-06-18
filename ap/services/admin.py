@@ -267,7 +267,7 @@ class WorkerGroupAdmin(admin.ModelAdmin):
   fieldsets = (
       (None, {
           'classes': ('suit-tab', 'suit-tab-general',),
-          'fields': ('name', 'description', 'active', 'assign_priority', 'workers', 'permission_groups')
+          'fields': ('name', 'description', 'active', 'assign_priority', 'workers') #, 'permission_groups')
       }),
       ('Preview', {
           'classes': ('suit-tab', 'suit-tab-preview',),
@@ -279,7 +279,11 @@ class WorkerGroupAdmin(admin.ModelAdmin):
                     ('preview', 'Filter Preview'),)
 
   def worker_count(self, obj):
-    return obj.get_workers.count()
+    worker_count = obj.get_workers
+    if worker_count == []:
+      return 0
+    else:
+      return worker_count.count()
 
   def get_worker_list(self, obj):
     return obj.get_worker_list()
@@ -293,16 +297,16 @@ class WorkerGroupAdmin(admin.ModelAdmin):
   def save_related(self, request, form, formsets, change):
     super(WorkerGroupAdmin, self).save_related(request, form, formsets, change)
     instance = form.save(commit=False)
-    permission_groups = instance.permission_groups.all()
+    # permission_groups = instance.permission_groups.all()
     workers = instance.workers.all()
     trainees = Trainee.objects.filter(worker__in=workers)
-    for g in permission_groups:
-      if g.name not in NONSERVICE_GROUPS:
-        g.user_set.clear()
-      for t in trainees:
-        # adds trainee to the permission group
-        g.user_set.add(t)
-      g.save()
+    # for g in permission_groups:
+    #   if g.name not in NONSERVICE_GROUPS:
+    #     g.user_set.clear()
+    #   for t in trainees:
+    #     # adds trainee to the permission group
+    #     g.user_set.add(t)
+    #   g.save()
 
 
 # method for updating

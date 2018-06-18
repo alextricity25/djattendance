@@ -126,7 +126,7 @@ class Event(models.Model):
         date = self.day
       else:
         date = self.get_weekday_display()
-      return "ID %s %s %s [%s - %s] %s" % (self.id, date, self.weekday, self.start.strftime('%H:%M'), self.end.strftime('%H:%M'), self.name)
+      return "ID %s: %s %s [%s - %s] %s" % (self.id, date, self.weekday, self.start.strftime('%H:%M'), self.end.strftime('%H:%M'), self.name)
     except AttributeError as e:
       return str(self.id) + ": " + str(e)
 
@@ -287,7 +287,7 @@ class Schedule(models.Model):
 
   def __unicode__(self):
     try:
-      return 'ID %s [%s] %s - %s schedule' % (self.id, self.priority, self.name, self.season)
+      return 'ID %s: [%s] %s - %s schedule' % (self.id, self.priority, self.name, self.season)
     except AttributeError as e:
       return str(self.id) + ": " + str(e)
 

@@ -5,7 +5,6 @@ from django.db import models
 
 from .models import Classnotes
 from attendance.models import Roll
-from attendance.utils import Period
 from leaveslips.models import IndividualSlip, GroupSlip
 from terms.models import Term
 from accounts.models import Trainee

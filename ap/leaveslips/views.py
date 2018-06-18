@@ -32,8 +32,8 @@ class LeaveSlipUpdate(GroupRequiredMixin, generic.UpdateView):
     listJSONRenderer = JSONRenderer()
     ctx = super(LeaveSlipUpdate, self).get_context_data(**kwargs)
     trainee = self.get_object().get_trainee_requester()
-    periods = self.get_object().periods
-    ctx.update(react_attendance_context(trainee, period=periods[0], noForm=True))
+    kwargs['period'] = self.get_object().periods[0]
+    ctx.update(react_attendance_context(trainee, request_params=kwargs))
     ctx['Today'] = self.get_object().get_date().strftime('%m/%d/%Y')
     ctx['SelectedEvents'] = listJSONRenderer.render(AttendanceEventWithDateSerializer(self.get_object().events, many=True).data)
     ctx['default_transfer_ta'] = self.request.user.TA or self.get_object().TA
@@ -48,6 +48,8 @@ class IndividualSlipUpdate(LeaveSlipUpdate):
   context_object_name = 'leaveslip'
 
   def get_context_data(self, **kwargs):
+    kwargs['leaveslip_type'] = 'individual'
+    kwargs['object_id'] = self.object.id
     ctx = super(IndividualSlipUpdate, self).get_context_data(**kwargs)
     current_ls = self.get_object()
     if current_ls.type in ['MEAL', 'NIGHT']:
@@ -87,6 +89,8 @@ class GroupSlipUpdate(LeaveSlipUpdate):
   context_object_name = 'leaveslip'
 
   def get_context_data(self, **kwargs):
+    kwargs['leaveslip_type'] = 'group'
+    kwargs['object_id'] = self.object.id
     ctx = super(GroupSlipUpdate, self).get_context_data(**kwargs)
     ctx['show'] = 'groupslip'
     try:

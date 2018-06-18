@@ -1,17 +1,17 @@
-import django_filters
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
-from .models import Roll
-from rest_framework import filters
 from datetime import *
-from django.db.models import Q
+
+import django_filters
 from accounts.models import Trainee
+from django.db.models import Q
 from leaveslips.models import IndividualSlip
-from leaveslips.serializers import IndividualSlipSerializer, GroupSlipSerializer
-from aputils.trainee_utils import trainee_from_user
-from rest_framework_bulk import (
-    BulkListSerializer,
-    BulkSerializerMixin,
-)
+from leaveslips.serializers import (GroupSlipSerializer,
+                                    IndividualSlipSerializer)
+from rest_framework import filters
+from rest_framework.serializers import ModelSerializer, SerializerMethodField
+from rest_framework.validators import UniqueTogetherValidator
+from rest_framework_bulk import BulkListSerializer, BulkSerializerMixin
+
+from .models import Roll
 
 
 class RollSerializer(BulkSerializerMixin, ModelSerializer):
@@ -20,19 +20,21 @@ class RollSerializer(BulkSerializerMixin, ModelSerializer):
     model = Roll
     list_serializer_class = BulkListSerializer
     fields = ['id', 'event', 'trainee', 'status', 'finalized', 'notes', 'last_modified', 'submitted_by', 'date']
+    validators = [UniqueTogetherValidator(
+        queryset=Roll.objects.all(),
+        fields=('trainee', 'event', 'date', 'submitted_by', 'status'),
+        message='Duplication error for key fields, same status')]
 
   def create(self, validated_data):
     trainee = validated_data['trainee']
     event = validated_data['event']
     date = validated_data['date']
-    submitted_by = self.context['request'].user
-    validated_data['submitted_by'] = submitted_by
+    submitted_by = validated_data['submitted_by']
     status = validated_data['status']
 
     # checks if roll exists for given trainee, event, and date
     roll_override = Roll.objects.filter(trainee=trainee, event=event.id, date=date)
     leaveslips = IndividualSlip.objects.filter(rolls=roll_override)
-
 
     if roll_override.count() == 0 and status != 'P':  # if no pre-existing rolls, create
       return Roll.objects.create(**validated_data)
@@ -70,6 +72,7 @@ class RollSerializer(BulkSerializerMixin, ModelSerializer):
     else:
       return validated_data
 
+
 class RollFilter(filters.FilterSet):
   timestamp__lt = django_filters.DateTimeFilter(name='timestamp', lookup_expr='lt')
   timestamp__gt = django_filters.DateTimeFilter(name='timestamp', lookup_expr='gt')
@@ -84,7 +87,7 @@ class AttendanceSerializer(BulkSerializerMixin, ModelSerializer):
   name = SerializerMethodField('get_trainee_name')
   individualslips = IndividualSlipSerializer(many=True,)
   groupslips = GroupSlipSerializer(many=True, source='groupslip')
-  rolls = RollSerializer(many=True,)
+  rolls = RollSerializer(many=True, source='current_rolls')
 
   class Meta(object):
     model = Trainee
