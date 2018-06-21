@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from schedules.models import Event
 
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 """ attendance models.py
 The attendance module takes care of data and logic directly related
@@ -94,3 +95,18 @@ class Roll(models.Model):
 
   def get_delete_url(self):
     return reverse('attendance:admin-roll-delete', kwargs={'pk': self.id})
+
+class RollsFinalization:
+
+  EVENT_TYPES = (
+    ('EV', 'Everything'),
+    ('AM', 'Attendance Monitor'),
+    ('TM', 'Team Monitor'),
+    ('HC', 'House Coordinator'),
+  )
+
+  trainee = models.ForeignKey(Trainee, on_delete=models.SET_NULL)
+
+  week = models.IntegerField(default=0, validators=[MaxValueValidator(19), MinValueValidator(0)])
+
+  events_type = models.CharField(max_length=2, choices=EVENT_TYPES)
