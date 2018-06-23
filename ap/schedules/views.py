@@ -11,6 +11,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.views import generic
 from django.views.generic import CreateView, DeleteView, UpdateView
+from django.views.generic.base import TemplateView
 from rest_framework import filters, viewsets
 from terms.models import Term
 
@@ -51,6 +52,18 @@ class TermEvents(generic.ListView):
   def get_context_data(self, **kwargs):
     context = super(TermEvents, self).get_context_data(**kwargs)
     context['term'] = Term.decode(self.kwargs['term'])
+    return context
+
+class AfternoonScheduleChange(TemplateView):
+  template_name = 'shcedules/afternoon_changes.html'
+
+  def post(self, request, *args, **kwargs):
+    t_id = self.request.POST.get('trainee_id')
+    new_ev = self.request.POST.get('new_class')
+
+  def get_context_data(self, **kwargs):
+    context = super(AfternoonScheduleChangem, self).get_context_data(**kwargs)
+    context['title'] = 'Afternoon Class Changes'
     return context
 
 
