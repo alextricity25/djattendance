@@ -382,16 +382,13 @@ class TableRollsView(GroupRequiredMixin, AttendanceView):
     monitor = kwargs['monitor']
     event_list, trainee_evt_list = Schedule.get_roll_table_by_type_in_weeks(trainees, monitor, [current_week, ], event_type)
 
-    rolls = Roll.objects.filter(event__in=event_list, date__gte=start_date, date__lte=end_date).select_related('trainee', 'event')
-    rolls_withslips = rolls.filter(leaveslips__status="A")
+    rolls = Roll.objects.filter(event__in=event_list, date__gte=start_date, date__lte=end_date).exclude(status='P').select_related('trainee', 'event')
 
     roll_dict = OrderedDict()
 
     # Populate roll_dict from roll object for look up for building roll table
     for roll in rolls:
       r = roll_dict.setdefault(roll.trainee, OrderedDict())
-      if roll in rolls_withslips:
-        roll.leaveslip = True
       r[(roll.event, roll.date)] = roll
 
     # Add roll to each event from roll table
