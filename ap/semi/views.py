@@ -5,29 +5,56 @@ from accounts.models import Trainee
 from aputils.trainee_utils import is_trainee, trainee_from_user
 from braces.views import GroupRequiredMixin
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.base import TemplateView
-from semi.forms import AttendanceForm
+from django.views.generic import UpdateView
+from semi.forms import AttendanceForm, LocationForm
 from semi.models import SemiAnnual
 from semi.utils import attendance_stats
 from terms.models import Term
 
 
-# Create your views here.
-def attendance_base(request):
-  term = Term.current_term()
-  if is_trainee(request.user):
-    trainee = trainee_from_user(request.user)
-  else:
-    trainee = Trainee.objects.first()
-  semi, created = SemiAnnual.objects.get_or_create(trainee=trainee, term=term)
-  return HttpResponseRedirect(reverse('semi:attendance', kwargs={'pk': semi.pk}))
+class LocationUpdate(UpdateView):
+  model = SemiAnnual
+  form_class = LocationForm
+  template_name = 'semi/location_form.html'
+
+  def dispatch(self, request, *args, **kwargs):
+    if request.method == 'GET' and not self.kwargs.get('pk', None):
+      term = Term.current_term()
+      if is_trainee(request.user):
+        trainee = trainee_from_user(request.user)
+      else:
+        trainee = Trainee.objects.first()
+      semi, created = SemiAnnual.objects.get_or_create(trainee=trainee, term=term)
+      return redirect(reverse('semi:location', kwargs={'pk': semi.pk}))
+    return super(LocationUpdate, self).dispatch(request, *args, **kwargs)
+
+  def get_success_url(self):
+    return self.object.get_location_url()
+
+  def get_context_data(self, **kwargs):
+    context = super(LocationUpdate, self).get_context_data(**kwargs)
+    context['term'] = self.object.term
+    context['page_title'] = "Study Location Form"
+    context['button_label'] = "Save"
+    return context
 
 
 class AttendanceUpdate(TemplateView):
   template_name = 'semi/attendance_form.html'
   semi = None
+
+  def dispatch(self, request, *args, **kwargs):
+    if request.method == 'GET' and not self.kwargs.get('pk', None):
+      term = Term.current_term()
+      if is_trainee(request.user):
+        trainee = trainee_from_user(request.user)
+      else:
+        trainee = Trainee.objects.first()
+      semi, created = SemiAnnual.objects.get_or_create(trainee=trainee, term=term)
+      return redirect(reverse('semi:attendance', kwargs={'pk': semi.pk}))
+    return super(AttendanceUpdate, self).dispatch(request, *args, **kwargs)
 
   def get(self, request, *args, **kwargs):
     self.semi = get_object_or_404(SemiAnnual, pk=self.kwargs['pk'])

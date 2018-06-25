@@ -2,9 +2,10 @@
 from __future__ import unicode_literals
 
 from accounts.models import Trainee
-from terms.models import Term
-from django.db import models
 from django.contrib.postgres.fields import JSONField
+from django.core.urlresolvers import reverse
+from django.db import models
+from terms.models import Term
 
 
 def default_attendance():
@@ -22,3 +23,6 @@ class SemiAnnual(models.Model):
   location = models.CharField(max_length=5, default='TC')
 
   comments = models.CharField(max_length=200, blank=True)
+
+  def get_location_url(self):
+    return reverse('semi:location', kwargs={'pk': self.id})

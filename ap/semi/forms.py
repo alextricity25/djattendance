@@ -15,20 +15,9 @@ class AttendanceForm(forms.Form):
 
 class LocationForm(forms.ModelForm):
 
-  OPTIONS = (
-      ('Training Center', 'Training Center (with trainees)'),
-      ('Ministry Conference Center', 'Ministry Conference Center (with college students and young people)'),
-      ('Other', "Other (indicate proposed location, then submit a note to Jerome Keh's mail slot for approval or denial)"),
-  )
-
-  location_specific = forms.CharField(max_length=200)
-
-  location = forms.ChoiceField(choices=OPTIONS)
+  location = forms.ChoiceField(choices=LOCATIONS, widget=forms.RadioSelect)
+  comments = forms.CharField(label='Location', widget=forms.TextInput(attrs={'placeholder': 'location'}), required=False)
 
   class Meta:
     model = SemiAnnual
-    fields = ['location']
-    widgets = {
-      "location": forms.RadioSelect,
-      "location_specific": forms.HiddenInput()
-    }
+    fields = ['location', 'comments']
