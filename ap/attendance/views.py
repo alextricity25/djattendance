@@ -60,7 +60,7 @@ CURRENT_TERM = Term.current_term()
 def react_attendance_context(trainee, request_params=None):
   listJSONRenderer = JSONRenderer()
 
-  finalize = RollsFinalization.objects.none()
+  finalize_obj = RollsFinalization.objects.none()
   rolls = Roll.objects.none()
   individualslips = IndividualSlip.objects.none()
   events = Event.objects.none()
@@ -146,7 +146,7 @@ def react_attendance_context(trainee, request_params=None):
       'term_bb': term_bb,
       'trainee_select_form': trainee_select_form,
       'disablePeriodSelect': disablePeriodSelect,
-      'finalize': finalize_bb
+      'finalize_bb': finalize_bb
   }
   return ctx
 
