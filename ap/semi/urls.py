@@ -7,4 +7,5 @@ urlpatterns = [
   url(r'^attendance-report/$', views.AttendanceReport.as_view(), name='attendance-report'),
   url(r'^location/$', views.LocationUpdate.as_view(), name='location-base'),
   url(r'^location/(?P<pk>\d+)$', views.LocationUpdate.as_view(), name='location'),
+  url(r'^location-report/$', views.LocationReport.as_view(), name='location-report'),
 ]

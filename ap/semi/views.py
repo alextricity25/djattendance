@@ -113,3 +113,27 @@ class AttendanceReport(GroupRequiredMixin, TemplateView):
         d['submitted'] = "No"
       data.append(d)
     return data
+
+
+class LocationReport(GroupRequiredMixin, TemplateView):
+  template_name = 'semi/location_report.html'
+  group_required = ['training_assistant']
+
+  def get_context_data(self, **kwargs):
+    context = super(LocationReport, self).get_context_data(**kwargs)
+    context['page_title'] = "Location Report"
+    context['term'] = Term.current_term()
+    context['data'] = self.get_report_context()
+    return context
+
+  def get_report_context(self):
+    term = Term.current_term()
+    semis = SemiAnnual.objects.filter(term=term)
+    data = []
+    for t in Trainee.objects.all():
+      d = {'name': t.full_name, 'term': t.current_term, 'gender': t.gender}
+      if semis.filter(trainee=t).exists():
+        semi = semis.get(trainee=t)
+        d['semi'] = semi
+      data.append(d)
+    return data
