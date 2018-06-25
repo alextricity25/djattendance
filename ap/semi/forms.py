@@ -2,7 +2,7 @@ from semi.models import SemiAnnual
 from django import forms
 
 
-class AttendanceForm(forms.ModelForm):
+class AttendanceForm(forms.Form):
 
   ROLL_STATUS = (
       ('A', 'Attended'),
@@ -12,14 +12,11 @@ class AttendanceForm(forms.ModelForm):
       ('U', 'Unexcused Absence')
   )
 
-  attendance = forms.ChoiceField(choices=ROLL_STATUS)
-
-  class Meta:
-    model = SemiAnnual
-    fields = ['attendance']
-    widgets = {
-      "attendance": forms.RadioSelect
-    }
+  tuesday = forms.ChoiceField(choices=ROLL_STATUS, widget=forms.RadioSelect, required=False)
+  wednesday = forms.ChoiceField(choices=ROLL_STATUS, widget=forms.RadioSelect, required=False)
+  thursday = forms.ChoiceField(choices=ROLL_STATUS, widget=forms.RadioSelect, required=False)
+  friday = forms.ChoiceField(choices=ROLL_STATUS, widget=forms.RadioSelect, required=False)
+  saturday = forms.ChoiceField(choices=ROLL_STATUS, widget=forms.RadioSelect, required=False)
 
 
 class LocationForm(forms.ModelForm):

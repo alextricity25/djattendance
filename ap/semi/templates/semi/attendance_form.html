@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load bootstrap3 %}
+{% load common_tags %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block scripts %}
+{{form.media}}
+{% endblock %}
+
+{% block content %}
+<h2>Semi-Annual Training {{ term }}</h2>
+<h2>{{ page_title }}</h2>
+
+<form id="id_attendance_form" action="" method="post">
+  {% csrf_token %}
+  {% bootstrap_form form %}
+  <button type="submit" class="btn btn-primary btn-save" id="submit">{{button_label|safe}}</button>
+</form>
+{% endblock %}

@@ -202,6 +202,7 @@ APPS = (
     'room_reservations',
     'schedules',
     'seating',  # seating charts
+    'semi',
     'syllabus',  # class syllabus
     'verse_parse',  # parse outlines for PSRP verses
     'web_access',

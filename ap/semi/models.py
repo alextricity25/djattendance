@@ -19,4 +19,4 @@ class SemiAnnual(models.Model):
 
   attendance = JSONField(default=default_attendance())
 
-  location = models.CharField(max_length=200)
+  location = models.CharField(max_length=200, blank=True)
