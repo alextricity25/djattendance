@@ -1,3 +1,6 @@
+from datetime import datetime
+from terms.models import Term
+
 ROLL_STATUS = (
     ('A', 'Attended'),
     ('S', 'Service'),
@@ -25,3 +28,13 @@ def attendance_stats(semi):
     d[status.split(' ')[0]] = count(att, code)
   d['Absences'] = 5 - d['Attended']
   return d
+
+
+def location_form_available():
+  week = Term.current_term().term_week_of_date(datetime.now())
+  return week >= 17 or week <= 19
+
+
+def attendance_form_available():
+  week = Term.current_term().term_week_of_date(datetime.now())
+  return week >= 18 or week <= 19
