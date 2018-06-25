@@ -17,8 +17,7 @@ from django.core.urlresolvers import resolve, reverse_lazy
 from django.db.models import Q
 from django.forms.forms import NON_FIELD_ERRORS
 from django.forms.utils import ErrorList
-from django.http import (HttpResponse, HttpResponseBadRequest,
-                         HttpResponseServerError, JsonResponse)
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
@@ -45,7 +44,7 @@ from terms.serializers import TermSerializer
 
 from .forms import RollAdminForm
 from .models import Roll, RollsFinalization
-from .serializers import AttendanceSerializer, RollFilter, RollSerializer
+from .serializers import AttendanceSerializer, RollFilter, RollSerializer, RollsFinalizationSerializer
 
 # universal variable for this term
 CURRENT_TERM = Term.current_term()
@@ -61,6 +60,7 @@ CURRENT_TERM = Term.current_term()
 def react_attendance_context(trainee, request_params=None):
   listJSONRenderer = JSONRenderer()
 
+  finalize = RollsFinalization.objects.none()
   rolls = Roll.objects.none()
   individualslips = IndividualSlip.objects.none()
   events = Event.objects.none()
@@ -131,7 +131,8 @@ def react_attendance_context(trainee, request_params=None):
   term_bb = listJSONRenderer.render(TermSerializer([CURRENT_TERM], many=True).data)
 
   if trainee.self_attendance:
-    finalize = RollsFinalization.objects.get(trainee=trainee, events_type='EV')
+    finalize_obj, created = RollsFinalization.objects.get_or_create(trainee=trainee, events_type='EV')
+  finalize_bb = listJSONRenderer.render(RollsFinalizationSerializer(finalize_obj).data)
 
   ctx = {
       'events_bb': events_bb,
@@ -144,7 +145,8 @@ def react_attendance_context(trainee, request_params=None):
       'TAs_bb': TAs_bb,
       'term_bb': term_bb,
       'trainee_select_form': trainee_select_form,
-      'disablePeriodSelect': disablePeriodSelect
+      'disablePeriodSelect': disablePeriodSelect,
+      'finalize': finalize_bb
   }
   return ctx
 
@@ -681,7 +683,7 @@ def finalize_personal(request):
   # period_end = dateutil.parser.parse(data['weekEnd'])
   week = Term.objects.get(current=True).reverse_date(period_start.date())[0]
   new_finalizerolls, created = RollsFinalization.objects.get_or_create(trainee=trainee, events_type='EV')
-  if created:
+  if new_finalizerolls.weeks == '':
     new_finalizerolls.weeks = str(week)
   else:
     new_finalizerolls.weeks = new_finalizerolls.weeks + "," + str(week)

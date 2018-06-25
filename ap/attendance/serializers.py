@@ -11,7 +11,7 @@ from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework_bulk import BulkListSerializer, BulkSerializerMixin
 
-from .models import Roll
+from .models import Roll, RollsFinalization
 
 
 class RollSerializer(BulkSerializerMixin, ModelSerializer):
@@ -96,3 +96,10 @@ class AttendanceSerializer(BulkSerializerMixin, ModelSerializer):
 
   def get_trainee_name(self, obj):
     return obj.__unicode__()
+
+class RollsFinalizationSerializer(BulkSerializerMixin, ModelSerializer):
+
+  class Meta(object):
+    model = RollsFinalization
+    list_serializer_class = BulkListSerializer
+    fields = ['weeks']
