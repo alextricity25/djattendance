@@ -3,12 +3,14 @@ from __future__ import unicode_literals
 
 from accounts.models import Trainee
 from aputils.trainee_utils import is_trainee, trainee_from_user
+from braces.views import GroupRequiredMixin
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-from django.views.generic.base import TemplateView
-from semi.models import SemiAnnual
-from semi.forms import AttendanceForm
 from django.shortcuts import get_object_or_404
+from django.views.generic.base import TemplateView
+from semi.forms import AttendanceForm
+from semi.models import SemiAnnual
+from semi.utils import attendance_stats
 from terms.models import Term
 
 
@@ -53,3 +55,34 @@ class AttendanceUpdate(TemplateView):
     context['page_title'] = "Personal Study Attendance Form"
     context['button_label'] = "Save"
     return context
+
+
+class AttendanceReport(GroupRequiredMixin, TemplateView):
+  template_name = 'semi/attendance_report.html'
+  group_required = ['training_assistant']
+
+  def get_context_data(self, **kwargs):
+    context = super(AttendanceReport, self).get_context_data(**kwargs)
+    context['page_title'] = "Attendance Report"
+    context['term'] = Term.current_term()
+    context['data'] = self.get_report_context()
+    return context
+
+  def get_report_context(self):
+    term = Term.current_term()
+    semis = SemiAnnual.objects.filter(term=term)
+    data = []
+    for t in Trainee.objects.all():
+      d = {'name': t.full_name, 'term': t.current_term}
+      if semis.filter(trainee=t).exists():
+        semi = semis.get(trainee=t)
+        if 'N' in semi.attendance.values():
+          d['submitted'] = "No"
+        else:
+          d['submitted'] = "Yes"
+          d['semi'] = semi
+          d['stats'] = attendance_stats(semi)
+      else:
+        d['submitted'] = "No"
+      data.append(d)
+    return data
