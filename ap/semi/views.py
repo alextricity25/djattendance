@@ -35,7 +35,9 @@ class AttendanceUpdate(TemplateView):
     self.semi = get_object_or_404(SemiAnnual, pk=self.kwargs['pk'])
     form = AttendanceForm(request.POST)
     if form.is_valid():
-      for k, v in form.cleaned_data.items():
+      data = form.cleaned_data
+      self.semi.location = data.pop('location')
+      for k, v in data.items():
         if v:
           self.semi.attendance[k] = v
       self.semi.save()
@@ -44,7 +46,9 @@ class AttendanceUpdate(TemplateView):
 
   def get_context_data(self, **kwargs):
     context = super(AttendanceUpdate, self).get_context_data(**kwargs)
-    context['form'] = AttendanceForm(initial=self.semi.attendance)
+    init = self.semi.attendance
+    init.update({'location': self.semi.location})
+    context['form'] = AttendanceForm(initial=init)
     context['term'] = self.semi.term
     context['page_title'] = "Personal Study Attendance Form"
     context['button_label'] = "Save"

@@ -12,6 +12,13 @@ class AttendanceForm(forms.Form):
       ('U', 'Unexcused Absence')
   )
 
+  LOCATIONS = (
+      ('T', 'Training Center'),
+      ('M', 'Ministry Conference Center'),
+      ('O', 'Other')
+  )
+
+  location = forms.ChoiceField(choices=LOCATIONS)
   tuesday = forms.ChoiceField(choices=ROLL_STATUS, widget=forms.RadioSelect, required=False)
   wednesday = forms.ChoiceField(choices=ROLL_STATUS, widget=forms.RadioSelect, required=False)
   thursday = forms.ChoiceField(choices=ROLL_STATUS, widget=forms.RadioSelect, required=False)
