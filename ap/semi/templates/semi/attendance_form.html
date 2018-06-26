@@ -9,13 +9,30 @@
 {{form.media}}
 {% endblock %}
 
+{% block references %}
+<style type="text/css">
+  .attendance-field {
+    display: inline-block;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <h2>Semi-Annual Training {{ term }}</h2>
 <h2>{{ page_title }}</h2>
 
 <form id="id_attendance_form" action="" method="post">
   {% csrf_token %}
-  {% bootstrap_form form %}
+  {% bootstrap_field form.location %}
+  {% for field in form %}
+    {% if forloop.counter0 > 0 %}
+    <span class="attendance-field">{{field.label}}:
+    {% for c in field %}
+      {{c}}
+    {% endfor %}
+    </span><br>
+    {% endif %}
+  {% endfor %}
   <button type="submit" class="btn btn-primary btn-save" id="submit">{{button_label|safe}}</button>
 </form>
 {% endblock %}
