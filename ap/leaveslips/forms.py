@@ -24,6 +24,8 @@ class LeaveslipForm(forms.ModelForm):
     self.fields['description'].widget.attrs['rows'] = 2
     self.fields['private_TA_comments'].widget.attrs['rows'] = 2
     self.fields['comments'].widget.attrs['rows'] = 2
+    self.fields['TA'].queryset = User.objects.filter(groups__name='regular_training_assistant')
+    self.fields['TA_informed'].queryset = User.objects.filter(groups__name='regular_training_assistant')
 
 
 class IndividualSlipForm(LeaveslipForm):

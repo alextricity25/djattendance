@@ -321,16 +321,16 @@ Service Scheduling
       <table class="table table-striped table-bordered data-table" id="table_exceptions">
         <thead>
           <tr>
-            <td></td>
-            <td>Name</td>
-            <td>Tags</td>
-            <td>Start</td>
-            <td>End</td>
-            <td>Count</td>
-            <td>Workload</td>
-            <td>Trainees</td>
-            <td>Schedule</td>
-            <td></td>
+            <th></th>
+            <th>Name</th>
+            <th>Tags</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Count</th>
+            <th>Workload</th>
+            <th>Trainees</th>
+            <th>Schedule</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -364,6 +364,7 @@ Service Scheduling
         <thead>
           <tr>
             <th class="category-info">Workers</th>
+            <th class="category-info">Workload</th>
             {% for category in categories %}
               <th class="category-info">{{ category.name }}</th>
             {% endfor %}
@@ -372,9 +373,8 @@ Service Scheduling
         <tbody>
         {% for worker in report_assignments %}
           <tr>
-            <td>
-              {{ worker.trainee.full_name }}
-            </td>
+            <td>{{ worker.trainee.full_name }}</td>
+            <td>{{ worker.workload }}</td>
             {% for category in categories %}
               {% if category in worker.services %}
                 <td>
@@ -880,6 +880,9 @@ Service Scheduling
             visible: true
           }
         ],
+        scrollY: '45vh',
+        scrollCollapse: true,
+        scrollX: true,
         dom: '<"row"<"col-sm-6"Bl><"col-sm-6"f>>' +
           '<"row"<"col-sm-12"<"table-responsive"tr>>>' +
           '<"row"<"col-sm-5"i><"col-sm-7"p>>',

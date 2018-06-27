@@ -92,7 +92,7 @@ class WorkerGroup(models.Model):
   @cached_property
   def get_workers(self):
     if not self.active:
-      return []
+      return Worker.objects.none()
     if not self.query_filters:
       # then it's a manual list of workers
       workers = self.workers
@@ -104,15 +104,23 @@ class WorkerGroup(models.Model):
       # Return filtered result
       # return workers
     # Only return workers with nozero service cap
-    cws = WeekSchedule.latest_week_schedule
     return workers.filter(services_cap__gt=0).select_related('trainee')\
         .prefetch_related(Prefetch('assignments', queryset=services.models.Assignment.objects.order_by('week_schedule__start')),
                           'assignments__service', 'assignments__service_slot')
 
   def get_workers_prefetch_assignments(self, cws):
-    return self.get_workers.prefetch_related(
-        Prefetch('assignments', queryset=services.models.Assignment.objects.filter(week_schedule=cws, pin=True), to_attr='pinned_assignments')
-        )
+    pinned = services.models.Assignment.objects.filter(week_schedule=cws, pin=True)
+    pinnedPrefetch = Prefetch(
+        'assignments',
+        queryset=pinned,
+        to_attr='pinned_assignments'
+    )
+    return self.get_workers.prefetch_related(pinnedPrefetch)\
+        .prefetch_related('assignments')\
+        .prefetch_related(
+            'assignments__service',
+            'assignments__week_schedule'
+    )
 
   def get_worker_ids(self):
     if not self.active:

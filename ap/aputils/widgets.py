@@ -29,6 +29,7 @@ class DatetimePicker(DateTimeInput):
 
   def __init__(self, *args, **kwargs):
     kwargs['attrs'] = {'class': 'datetimepicker'}
+    kwargs['attrs']['placeholder'] = "01/01/2018 03:45 PM"
     super(DatetimePicker, self).__init__(*args, **kwargs)
 
   class Media:
