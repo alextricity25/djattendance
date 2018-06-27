@@ -9,6 +9,19 @@
 {{form.media}}
 <script type="text/javascript">
 	$( document ).ready(() => {
+		load_val = "{{form.location.value}}"
+		if (load_val != 'Other'){
+			$("#id_comments").hide()
+		};
+
+		$("#id_attendance_form").change(function(){
+			if ($("#id_location_2").prop('checked')){
+				$("#id_comments").show()
+			} else{
+				$("#id_comments").hide()
+			};
+		});
+
 
 	});
 </script>
@@ -26,7 +39,7 @@
   {% for loc in form.location %}
   <div class="row">
     <div class="col-md-12">
-	  {{loc}} {% if forloop.counter == 3 %} {{form.comments}} {% endif %}
+	  {{loc}} {% if forloop.counter0 == 2 %} {{form.comments}} {% endif %}
 	</div>
   </div>
   {% endfor %}
