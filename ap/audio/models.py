@@ -222,6 +222,12 @@ class AudioRequest(models.Model, RequestMixin):
   trainee_comments = models.TextField()
   audio_requested = models.ManyToManyField(AudioFile, related_name='audio_requests')
 
+  def __unicode__(self):
+    return "<Audio Request ({2}) by {0}, {1}>".format(self.trainee_author, 
+                                                   self.date_requested.date(),
+                                                   self.status,
+    )
+
   @staticmethod
   def get_button_template():
     return 'audio/ta_buttons.html'

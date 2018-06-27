@@ -6,6 +6,7 @@ from django.core.urlresolvers import reverse
 from graduation.utils import grad_forms
 from form_manager.utils import user_forms
 from hc.utils import hc_surveys, hc_recommendations
+from semi.utils import location_form_available, attendance_form_available
 
 
 # Type Declarations
@@ -53,6 +54,8 @@ def generate_menu(context):
       trainee_only=[
           SubMenuItem(name='Absent Trainee Roster', permission='absent_trainee_roster.add_roster', url='absent_trainee_roster:absent_trainee_form', condition=user.has_group(['HC', 'absent_trainee_roster'])),
           SubMenuItem(name='Personal Attendance', url='attendance:attendance-submit', condition=True),
+          SubMenuItem(name='Semi Annual Study Attendance', url='semi:attendance-base', condition=attendance_form_available()),
+          SubMenuItem(name='Semi Annual Study Location', url='semi:location-base', condition=location_form_available()),
           SubMenuItem(name='Roll Entry Seating Chart', permission='attendance.add_roll', url='attendance:class-rolls', condition=user.has_group(['attendance_monitors'])),
           SubMenuItem(name='Audit', permission='attendance.add_roll', url='attendance:audit-rolls', condition=user.has_group(['attendance_monitors'])),
           SubMenuItem(name='Designated Service Hours', permission='services.add_designated_service_hours', url='services:designated_service_hours', condition=user.has_group(['designated_service'])),
