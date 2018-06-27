@@ -24,5 +24,8 @@ class SemiAnnual(models.Model):
 
   comments = models.CharField(max_length=200, blank=True)
 
+  class Meta:
+    unique_together = ('trainee', 'term')
+
   def get_location_url(self):
     return reverse('semi:location', kwargs={'pk': self.id})
