@@ -639,7 +639,10 @@ def finalize(request):
     roll = Roll(date=period_start, trainee=trainee, status='P', event=event, finalized=True, submitted_by=submitter)
     roll.save()
   listJSONRenderer = JSONRenderer()
-  rolls = listJSONRenderer.render(RollSerializer(Roll.objects.filter(trainee=trainee), many=True).data)
+  if trainee.self_attendance:
+    rolls = listJSONRenderer.render(RollSerializer(Roll.objects.filter(submitted_by=trainee), many=True).data)
+  else:
+    rolls = listJSONRenderer.render(RollSerializer(Roll.objects.filter(trainee=trainee), many=True).data)
 
   return JsonResponse({'rolls': json.loads(rolls)})
 
