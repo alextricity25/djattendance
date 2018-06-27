@@ -26,7 +26,7 @@ class LocationUpdate(UpdateView):
         trainee = trainee_from_user(request.user)
       else:
         trainee = Trainee.objects.first()
-      semi, created = SemiAnnual.objects.get_or_create(trainee=trainee, term=term)
+      semi = SemiAnnual.objects.get_or_create(trainee=trainee, term=term)[0]
       return redirect(reverse('semi:location', kwargs={'pk': semi.pk}))
     return super(LocationUpdate, self).dispatch(request, *args, **kwargs)
 
@@ -52,7 +52,7 @@ class AttendanceUpdate(TemplateView):
         trainee = trainee_from_user(request.user)
       else:
         trainee = Trainee.objects.first()
-      semi, created = SemiAnnual.objects.get_or_create(trainee=trainee, term=term)
+      semi = SemiAnnual.objects.get_or_create(trainee=trainee, term=term)[0]
       return redirect(reverse('semi:attendance', kwargs={'pk': semi.pk}))
     return super(AttendanceUpdate, self).dispatch(request, *args, **kwargs)
 
@@ -91,14 +91,8 @@ class AttendanceReport(GroupRequiredMixin, TemplateView):
   template_name = 'semi/attendance_report.html'
   group_required = ['training_assistant']
 
-  def get_context_data(self, **kwargs):
-    context = super(AttendanceReport, self).get_context_data(**kwargs)
-    context['page_title'] = "Attendance Report"
-    context['term'] = Term.current_term()
-    context['data'] = self.get_report_context()
-    return context
-
-  def get_report_context(self):
+  @staticmethod
+  def get_report_context():
     term = Term.current_term()
     semis = SemiAnnual.objects.filter(term=term)
     data = []
@@ -117,19 +111,20 @@ class AttendanceReport(GroupRequiredMixin, TemplateView):
       data.append(d)
     return data
 
+  def get_context_data(self, **kwargs):
+    context = super(AttendanceReport, self).get_context_data(**kwargs)
+    context['page_title'] = "Attendance Report"
+    context['term'] = Term.current_term()
+    context['data'] = self.get_report_context()
+    return context
+
 
 class LocationReport(GroupRequiredMixin, TemplateView):
   template_name = 'semi/location_report.html'
   group_required = ['training_assistant']
 
-  def get_context_data(self, **kwargs):
-    context = super(LocationReport, self).get_context_data(**kwargs)
-    context['page_title'] = "Location Report"
-    context['term'] = Term.current_term()
-    context['data'] = self.get_report_context()
-    return context
-
-  def get_report_context(self):
+  @staticmethod
+  def get_report_context():
     term = Term.current_term()
     semis = SemiAnnual.objects.filter(term=term)
     data = []
@@ -140,3 +135,10 @@ class LocationReport(GroupRequiredMixin, TemplateView):
         d['semi'] = semi
       data.append(d)
     return data
+
+  def get_context_data(self, **kwargs):
+    context = super(LocationReport, self).get_context_data(**kwargs)
+    context['page_title'] = "Location Report"
+    context['term'] = Term.current_term()
+    context['data'] = self.get_report_context()
+    return context
