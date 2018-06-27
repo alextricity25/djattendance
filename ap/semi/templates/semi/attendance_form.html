@@ -7,14 +7,19 @@
 
 {% block scripts %}
 {{form.media}}
-<script type="text/javascript">
-$(document).ready(function() {
-    $("#attendance_table").DataTable();
-  });
-</script>
 {% endblock %}
 
 {% block references %}
+<style type="text/css">
+  #attendance_table{
+    table-layout: auto;
+    width: auto;
+  }
+  td{
+    text-align: center;
+    vertical-align: middle;
+  }
+</style>
 
 {% endblock %}
 
@@ -26,13 +31,20 @@ $(document).ready(function() {
   {% csrf_token %}
   {% bootstrap_field form.location %}
   <table id="attendance_table" class="table">
+    <thead>
+      <tr>
+        {% for head in headers %}
+        <th>{{head}}</th>
+        {% endfor %}
+      </tr>
+    </thead>
   {% for field in form %}
     <tbody>
     {% if forloop.counter0 > 0 %}
     <tr>
     <th>{{field.label}}:</th>
     {% for c in field %}
-      <td>{{c}}</td>
+      <td>{{c.tag}}</td>
     {% endfor %}
     </tr>
     {% endif %}

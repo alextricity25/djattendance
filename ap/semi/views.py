@@ -10,7 +10,7 @@ from django.views.generic.base import TemplateView
 from django.views.generic import UpdateView
 from semi.forms import AttendanceForm, LocationForm
 from semi.models import SemiAnnual
-from semi.utils import attendance_stats
+from semi.utils import attendance_stats, ROLL_STATUS
 from terms.models import Term
 
 
@@ -77,6 +77,9 @@ class AttendanceUpdate(TemplateView):
     context = super(AttendanceUpdate, self).get_context_data(**kwargs)
     init = self.semi.attendance
     init.update({'location': self.semi.location})
+    headers = [rs[1] for rs in ROLL_STATUS]
+    headers.insert(0, '')
+    context['headers'] = headers
     context['form'] = AttendanceForm(initial=init)
     context['term'] = self.semi.term
     context['page_title'] = "Personal Study Attendance Form"
