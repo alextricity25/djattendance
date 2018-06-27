@@ -5,7 +5,7 @@ from django import forms
 
 class AttendanceForm(forms.Form):
 
-  location = forms.ChoiceField(choices=LOCATIONS)
+  location = forms.ChoiceField(choices=LOCATIONS, widget=forms.TextInput(attrs={'readonly': 'readonly'}))
   tuesday = forms.ChoiceField(choices=ROLL_STATUS, widget=forms.RadioSelect)
   wednesday = forms.ChoiceField(choices=ROLL_STATUS, widget=forms.RadioSelect)
   thursday = forms.ChoiceField(choices=ROLL_STATUS, widget=forms.RadioSelect)
