@@ -181,6 +181,7 @@ class Section(models.Model):
 
 
 class Session(models.Model):
+
   trainee = models.ForeignKey(Trainee, related_name='exam_sessions', null=True, on_delete=models.SET_NULL)
   exam = models.ForeignKey(Exam, related_name='sessions', on_delete=models.SET_NULL, null=True)
 
@@ -199,6 +200,9 @@ class Session(models.Model):
     except AttributeError as e:
       return str(self.id) + ": " + str(e)
 
+  class Meta:
+    ordering = ['trainee']
+    unique_together = ('trainee', 'exam')
 
 class Responses(models.Model):
   session = models.ForeignKey(Session, related_name='responses', on_delete=models.SET_NULL, null=True)
