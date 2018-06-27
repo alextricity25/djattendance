@@ -690,8 +690,11 @@ def finalize_personal(request):
   new_finalizerolls.save()
 
   listJSONRenderer = JSONRenderer()
-  rolls = listJSONRenderer.render(RollSerializer(Roll.objects.filter(trainee=trainee, submitted_by=trainee), many=True).data)
-  return JsonResponse({'rolls': json.loads(rolls)})
+  # rolls = listJSONRenderer.render(RollSerializer(Roll.objects.filter(trainee=trainee, submitted_by=trainee), many=True).data)
+  # return JsonResponse({'rolls': json.loads(rolls)})
+
+  finalize_obj = listJSONRenderer.render(RollsFinalizationSerializer(RollsFinalization.objects.get(trainee=trainee, events_type='EV')).data)
+  return JsonResponse({'finalized_weeks': finalize_obj})
 
 @group_required(('attendance_monitors',))
 def rfid_signin(request, trainee_id):
