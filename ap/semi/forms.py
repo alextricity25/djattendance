@@ -16,7 +16,7 @@ class AttendanceForm(forms.Form):
 class LocationForm(forms.ModelForm):
 
   location = forms.ChoiceField(choices=LOCATIONS, widget=forms.RadioSelect)
-  comments = forms.CharField(label='Location', widget=forms.TextInput(attrs={'placeholder': 'location'}), required=False)
+  comments = forms.CharField(label='', widget=forms.TextInput(attrs={'placeholder': 'location'}), required=False)
 
   class Meta:
     model = SemiAnnual

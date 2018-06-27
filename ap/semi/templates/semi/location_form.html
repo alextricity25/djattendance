@@ -7,6 +7,11 @@
 
 {% block scripts %}
 {{form.media}}
+<script type="text/javascript">
+	$( document ).ready(() => {
+
+	});
+</script>
 {% endblock %}
 
 {% block content %}
@@ -18,7 +23,13 @@
 <strong>Regardless of where you are assigned, all trainees are required to report to the Training Center on the Tuesday morning of semi-annual training week for a corporate study and testing time.</strong> You may study at your assigned location starting the Wednesday morning of semi-annual training week.</p>
 <form id="id_attendance_form" action="" method="post">
   {% csrf_token %}
-  {% bootstrap_form form %}
+  {% for loc in form.location %}
+  <div class="row">
+    <div class="col-md-12">
+	  {{loc}} {% if forloop.counter == 3 %} {{form.comments}} {% endif %}
+	</div>
+  </div>
+  {% endfor %}
   <button type="submit" class="btn btn-primary btn-save" id="submit">{{button_label|safe}}</button>
 </form>
 {% endblock %}
