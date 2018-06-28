@@ -11,7 +11,7 @@
     <div class="pull-right">
       <form action="" method="post">
         {% csrf_token %}
-        <input name="penalty_num" value="1">
+        <input name="penalty_num" value="{{discipline.get_num_summary_due}}">
         <button type="submit" name="increase_penalty" class="btn btn-default btn-sm">
           <span class="glyphicon glyphicon-plus-sign"></span> Increase Penalty
         </button>

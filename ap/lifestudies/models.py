@@ -106,8 +106,8 @@ class Discipline(models.Model):
           return False
     return True
 
-  # decrease the quantity of the discipline by the number specified. Add 1
-  # more summary if num is not specified
+  # decrease the quantity of the discipline by the number specified. Subtract 1
+  # summary if num is not specified
   def decrease_penalty(self, num=1):
     self.quantity -= num
     self.save()
