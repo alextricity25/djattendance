@@ -363,43 +363,11 @@ class Schedule(models.Model):
     return EventUtils.flip_roll_list(event_trainee_tb)
 
   def save(self, *args, **kwargs):
-    # self.save_query_filter()
     super(Schedule, self).save(*args, **kwargs)
 
-  def save_query_filter(self):
-    # TODO: Handle manual filter
-    if self.query_filter is None:
-      query_name = ''
-      query = ''
-
-      if self.trainee_select == 'TE':
-        query_name = self.team_roll.name
-        query = '{"team__id":%s}' % self.team_roll.id
-      elif self.trainee_select == 'FY':
-        query_name = 'first year'
-        query = '{"current_term__lt":3}'
-      elif self.trainee_select == 'SY':
-        query_name = 'second year'
-        query = '{"current_term__gt":2}'
-      elif self.trainee_select == 'YP':
-        query_name = 'yp'
-        query = '{"team__type":"YP"}'
-      elif self.trainee_select == 'CH':
-        query_name = 'children'
-        query = '{"team__type":"CHILD"}'
-
-      if query == '':
-        return
-
-      qf, created = QueryFilter.objects.get_or_create(name=query_name)
-      if created:
-        qf.query = query
-        qf.save()
-      self.query_filter = qf
-
-  def __get_qf_trainees(self):
+  def _get_qf_trainees(self):
     if not self.query_filter:
-      return None
+      return Trainee.objects.all()
     query = eval(self.query_filter.query)
     if isinstance(query, dict):
       return Trainee.objects.filter(**query)
@@ -413,7 +381,7 @@ class Schedule(models.Model):
     q.save()
   """
   def assign_trainees(self):
-    trainees = self.__get_qf_trainees()
+    trainees = self._get_qf_trainees()
     if trainees:
       self.trainees.set(trainees)
 

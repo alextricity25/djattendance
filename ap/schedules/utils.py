@@ -137,7 +137,7 @@ def assign_trainees_to_schedule(schedule):
     if schedule.is_locked:
       return
 
-    new_set = schedule.__get_qf_trainees()
+    new_set = schedule._get_qf_trainees()
     current_set = schedule.trainees.all()
 
     # If the schedules are identical, bail early

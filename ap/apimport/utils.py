@@ -218,8 +218,14 @@ def save_file(f, path):
   return full_path
 
 
-def check_sending_locality(locality):
-  return Locality.objects.filter(city__name=locality).exists()
+def check_sending_locality(locality, state=None, country=None):
+  if state is None and country is None:
+    return Locality.objects.filter(city__name=locality).exists()
+  else:
+    if country == 'US':
+      return Locality.objects.filter(city__name=locality, city__state=state, city__country=country).exists()
+    else:
+      return Locality.objects.filter(city__name=locality, city__country=country).exists()
 
 
 def check_team(team):
@@ -305,7 +311,7 @@ def check_csvfile(file_path):
         else:
           # TODO(import2): Is a check on the normalized values enough?  Probably since
           # that's what we use anyways.
-          if (not check_sending_locality(city_norm)) and (city_norm not in localities):
+          if (not check_sending_locality(city_norm, state_norm, country_norm)) and (city_norm not in localities):
             localities.append(city_norm)
             locality_states.append("" if state_norm is None else state_norm)
             locality_countries.append("" if country_norm is None else country_norm)
@@ -447,7 +453,7 @@ def new_normalize_city(city, state, country):
     state_code = "PR"
     country_code = "US"
 
-  return country_code, state_code, city_name
+  return city_name, state_code, country_code
 
 
 def countrycode_from_alpha3(code3):
@@ -467,6 +473,8 @@ def import_address(address, city, state, zip, country):
     return address_obj
   except Address.DoesNotExist:
     pass
+  except Address.MultipleObjectsReturned:
+    return Address.objects.filter(address1=address).first()
 
   city_norm, state_norm, country_norm = new_normalize_city(city, state, country)
 
@@ -474,7 +482,10 @@ def import_address(address, city, state, zip, country):
   if city_norm is None or country_norm is None:
     return None
 
-  city_obj, created = City.objects.get_or_create(name=city_norm, state=state_norm, country=country_norm)
+  if country_norm == 'US':
+    city_obj, created = City.objects.get_or_create(name=city_norm, state=state_norm, country=country_norm)
+  else:
+    city_obj, created = City.objects.get_or_create(name=city_norm, country=country_norm)
 
   try:
     zip_int = int(zip)
@@ -506,6 +517,16 @@ def gospel_code(choice):
 
 def lrhand_code(choice):
   return 'R' if choice == 'right' else 'L'
+
+
+def validate_row(row):
+  for k, v in row.items():
+    row[k] = unicode(v, errors='ignore')
+    if 'phone' in k:
+      if len(v) > 25:
+        print "For %s: %s - Value is too long " % (k, v)
+        rm = 25 - len(v)
+        v = v[:rm]
 
 
 def import_row(row):
@@ -676,6 +697,7 @@ def import_csvfile(file_path):
   with open(file_path, 'r') as f:
     reader = csv.DictReader(f)
     for row in reader:
+      validate_row(row)
       import_row(row)
 
   for schedule in Schedule.objects.filter(term=term):
@@ -766,8 +788,7 @@ def log_changes(sender, instance, **kwargs):
   else:
     for field in User._meta.get_fields():
       if hasattr(instance, field.name) and (getattr(user, field.name) != getattr(instance, field.name)):
-        # try:
-        log.info("%s - %s changed from %s to %s." % (user.full_name, field.name, str(getattr(user, field.name)), str(getattr(instance, field.name))))
-        # except TypeError:
-        #   log.info("%s - %s changed." % (user.full_name, field.name))
-        #   log.warning(field.name + " has no string rendering.")
+        try:
+          log.info("%s - %s changed from %s to %s." % (user.full_name, field.name, str(getattr(user, field.name)), str(getattr(instance, field.name))))
+        except Exception:
+          pass
