@@ -253,6 +253,7 @@ const reducers = {
   //these will mutate...
   submitting: (state = {}) => state,
   formSuccess: (state = {}) => state,
+  finalized_weeks: (state = {}) => state,
 
   // variables that will mutate
   showLegend,

@@ -7,6 +7,7 @@ var iSlips = require("./testdata/individualSlips");
 var gSlips = require("./testdata/groupSlips");
 var term = require("./testdata/term");
 var groupevents = require("./testdata/groupevents");
+var finalized_weeks = require("./testdata/finalized_weeks");
 var date = new Date();
 var selectedEvents = [];
 var show = 'summary';
@@ -31,6 +32,9 @@ if (typeof Term !== 'undefined') {
 }
 if (typeof Trainees !== 'undefined') {
   trainees = Trainees;
+}
+if (typeof Finalized_weeks !== 'undefined') {
+  finalized_weeks = Finalized_weeks;
 }
 if (typeof TAs !== 'undefined') {
   tas = TAs;
@@ -97,9 +101,10 @@ var initialState = {
   term: term,
   showLegend: true,
   disablePeriodSelect: disablePeriodSelect,
-
+  finalized_weeks: [],
   submitting: false,
   formSuccess: null,
+
 };
 
 export default initialState;
