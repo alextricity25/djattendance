@@ -109,8 +109,12 @@ class Discipline(models.Model):
   # decrease the quantity of the discipline by the number specified. Subtract 1
   # summary if num is not specified
   def decrease_penalty(self, num=1):
-    self.quantity -= num
-    self.save()
+    if self.quantity - num < 1:
+      #Delete the discipline
+      self.delete()
+    else:
+      self.quantity -= num
+      self.save()
     return self.quantity
 
   # increase the quantity of the discipline by the number specified. Add 1

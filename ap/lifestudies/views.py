@@ -141,13 +141,9 @@ class DisciplineDetailView(DetailView):
     if ('penalty_num' in request.POST):
       penalty_num = int(request.POST['penalty_num'])
       if 'decrease_penalty' in request.POST:
-        if self.get_object().quantity - penalty_num < 1:
-          #Delete the discipline
-          self.get_object().delete()
-        else:
-          self.get_object().decrease_penalty(penalty_num)
+        self.get_object().decrease_penalty(penalty_num)
         messages.success(request, "Decreased summary by x")
-      
+
       if 'increase_penalty' in request.POST:
         self.get_object().increase_penalty(penalty_num)
         messages.success(request, "Increased Summary by x")
