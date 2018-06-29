@@ -461,7 +461,7 @@ class StudyRollsView(TableRollsView):
 class HouseRollsView(TableRollsView):
   group_required = [u'HC', u'attendance_monitors', u'training_assistant']
 
-  def checkfinalize(trainees, e_type, week):
+  def checkfinalize(self, trainees, e_type, week):
     rfs = RollsFinalization.objects.filter(trainee__in=trainees, events_type=e_type)
     for rf in rfs:
       if not rf.has_week(week):
@@ -503,7 +503,7 @@ class HouseRollsView(TableRollsView):
       ctx['houses'] = House.objects.filter(used=True).order_by("name").exclude(name__in=['TC', 'MCC', 'COMMUTER']).values("pk", "name")
 
     if not self.request.user.has_group(['attendance_monitors', 'training_assistant']):
-      ctx['finalized'] = checkfinalize(trainees, kwargs['monitor'], ctx['current_week'])
+      ctx['finalized'] = self.checkfinalize(trainees, kwargs['monitor'], ctx['current_week'])
 
     return ctx
 
@@ -512,7 +512,7 @@ class HouseRollsView(TableRollsView):
 class TeamRollsView(TableRollsView):
   group_required = [u'team_monitors', u'attendance_monitors', u'training_assistant']
 
-  def checkfinalize(trainees, e_type, week):
+  def checkfinalize(self, trainees, e_type, week):
     rfs = RollsFinalization.objects.filter(trainee__in=trainees, events_type=e_type)
     for rf in rfs:
       if not rf.has_week(week):
@@ -554,7 +554,7 @@ class TeamRollsView(TableRollsView):
       ctx['teams'] = Team.objects.all().order_by("type", "name").values("pk", "name")
 
     if not self.request.user.has_group(['attendance_monitors', 'training_assistant']):
-      ctx['finalized'] = checkfinalize(trainees, kwargs['monitor'], ctx['current_week'])
+      ctx['finalized'] = self.checkfinalize(trainees, kwargs['monitor'], ctx['current_week'])
 
     return ctx
 

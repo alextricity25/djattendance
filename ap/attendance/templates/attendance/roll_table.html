@@ -357,7 +357,7 @@
               <td></td>
               <td></td>
               {% for event in event_list %}
-              <th><select class="set_all" data-col='{{event.id}}'>
+              <th><select class="set_all" data-col='{{event.id}}' {% if finalized %} disabled {% endif %}>
                 <option val=""></option>
                 <option val="P">P</option>
                 <option val="A">A</option>
@@ -397,7 +397,7 @@
               {% with events=trainees_event_list|get_item:t %}
               {% if event in events %}
               {% with evt=events|lookup:event %}
-              <td contenteditable="true" class='sectionInputs' data-row='{{t.id}}' data-col='{{evt.id}}' data-date='{{ evt.start_datetime.date|date:"c"}}'>
+              <td {% if not finalized %} contenteditable="true" {% endif %} class='sectionInputs' data-row='{{t.id}}' data-col='{{evt.id}}' data-date='{{ evt.start_datetime.date|date:"c"}}'>
                 {% if evt.roll %}{{evt.roll.status}}{% endif %}
               </td>
               {% endwith %}
