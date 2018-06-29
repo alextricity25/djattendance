@@ -98,9 +98,7 @@ class Discipline(models.Model):
   # have been submitted. This assume num of summary submitted not larger
   # than num of summary assigned
   def is_completed(self):
-    if self.get_num_summary_due() > 0:
-      return False
-    return True
+    return self.get_num_summary_due() <= 0
 
   # increase the quantity of the discipline by the number specified. Add 1
   # more summary if num is not specified
