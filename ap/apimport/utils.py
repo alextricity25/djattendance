@@ -12,6 +12,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings  # for access to MEDIA_ROOT
 from django.contrib import messages
 from django.contrib.auth.models import Group
+from django.core import serializers
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django_countries import countries
@@ -686,7 +687,7 @@ def import_row(row):
 
 
 def import_csvfile(file_path):
-  term = Term.current_term()
+  # term = Term.current_term()
   # sanity check
   localities, teams, residences = check_csvfile(file_path)
   if localities or teams or residences:
@@ -700,8 +701,8 @@ def import_csvfile(file_path):
       validate_row(row)
       import_row(row)
 
-  for schedule in Schedule.objects.filter(term=term):
-    assign_trainees_to_schedule(schedule)
+  # for schedule in Schedule.objects.filter(term=term):
+  #   assign_trainees_to_schedule(schedule)
 
   log.info("Import complete")
   return True
@@ -726,33 +727,34 @@ def migrate_schedule(schedule):
   if schedule is None:
     return
 
-  schedule2 = schedule
-  schedule2.pk = None
-  schedule2.date_created = datetime.now()
-  schedule2.is_locked = False
-  schedule2.term = Term.current_term()
-  schedule2.save()
-  schedule2.events.add(*schedule.events.all())
-  schedule2.save()
-  # new schedules do not have trainees because teams change, graduating & incoming trainees, etc.
-  # but the trainee query filter is still migrated.
-  return schedule2
+  # unlock schedule
+  # change to latest term
+  # clear trainees on schedule
+  term = Term.objects.order_by('start').last()
+  schedule.is_locked = False
+  schedule.term = term
+  schedule.trainees.clear()
+  schedule.save()
+  return schedule
+
+
+def schedules_dump():
+  RIGHT_NOW = datetime.now().strftime("%m%d%Y_%H%M%S")
+  fname = "schedules_%s.json" % RIGHT_NOW
+  data = serializers.serialize("json", Schedule.objects.all())
+  out = open(fname, "w")
+  out.write(data)
+  out.close()
 
 
 def migrate_schedules():
-  term = Term.current_term()
-  term_minus_one = term_before(term)
-  term_minus_two = term_before(term_minus_one)
-  schedules = Schedule.objects_all.filter(term=term_minus_one, import_to_next_term=True, season="All")
-  schedules |= Schedule.objects_all.filter(term=term_minus_two, import_to_next_term=True, season=term.season)
-
-  if not mid_term():
-    # to account for a migrated schedules on a failed import
-    s, y = generate_term()
-    if not (term.season == s and term.year == y):
-      # if the next term is not already created
-      for schedule in schedules:
-        migrate_schedule(schedule)
+  # dump all schedule data
+  # delete all schedules with import_to_next_term = false
+  # migrate all schedules with import_to_next_term = true
+  schedules_dump()
+  Schedule.objects.filter(import_to_next_term=False).delete()
+  for schedule in Schedule.objects_all.filter(import_to_next_term=True):
+    migrate_schedule(schedule)
 
 
 def migrate_seating_chart(chart, term):
@@ -771,7 +773,7 @@ def migrate_seating_chart(chart, term):
 
 
 def migrate_seating_charts():
-  term = Term.current_term()
+  term = Term.objects.order_by('start').last()
   term_minus_one = term_before(term)
 
   charts = Chart.objects_all.filter(term=term_minus_one)
