@@ -44,7 +44,7 @@ from terms.models import Term
 from terms.serializers import TermSerializer
 
 from .forms import RollAdminForm
-from .models import Roll
+from .models import Roll, RollsFinalization
 from .serializers import AttendanceSerializer, RollFilter, RollSerializer
 
 # universal variable for this term
@@ -639,10 +639,28 @@ def finalize(request):
     roll = Roll(date=period_start, trainee=trainee, status='P', event=event, finalized=True, submitted_by=submitter)
     roll.save()
   listJSONRenderer = JSONRenderer()
-  rolls = listJSONRenderer.render(RollSerializer(Roll.objects.filter(trainee=trainee), many=True).data)
-
+  rolls = listJSONRenderer.render(RollSerializer(Roll.objects.filter(trainee=trainee, submitted_by=trainee), many=True).data)
   return JsonResponse({'rolls': json.loads(rolls)})
 
+def finalize_rolls(request, event_type='EV'):
+  if not request.method == 'POST':
+    return HttpResponseBadRequest('Request must use POST method')
+  data = json.loads(request.body)
+  trainee = get_object_or_404(Trainee, id=data['trainee']['id'])
+
+  period_start = dateutil.parser.parse(data['weekStart'])
+  # period_end = dateutil.parser.parse(data['weekEnd'])
+  week = Term.objects.get(current=True).reverse_date(period_start.date())[0]
+  new_finalizerolls, created = RollsFinalization.objects.get_or_create(trainee=trainee, events_type=event_type)
+  if created:
+    new_finalizerolls.weeks = str(week)
+  else:
+    new_finalizerolls.weeks = new_finalizerolls.weeks + "," + str(week)
+  new_finalizerolls.save()
+
+  listJSONRenderer = JSONRenderer()
+  rolls = listJSONRenderer.render(RollSerializer(Roll.objects.filter(trainee=trainee, submitted_by=trainee), many=True).data)
+  return JsonResponse({'rolls': json.loads(rolls)})
 
 @group_required(('attendance_monitors',))
 def rfid_signin(request, trainee_id):

@@ -121,6 +121,23 @@
     action: gender_filter(1),
   };
 
+  function finalize_rolls(){
+    $.ajax({
+        type: "POST",
+        url: "/api/rolls/",
+        data: data,
+        success: function(response) {
+          $("td[data-row="+response.trainee+"][data-col="+response.event+"]").text(response.status);
+          new Notification(Notification.SUCCESS, 'Saved').show();
+        },
+      });
+  }
+
+  $.fn.datatable.ext.buttons.finalize_rolls = {
+    text: 'Finalize Rolls',
+    action: finalize_rolls()
+  }
+
   function selfattendance_filter(bool){
     table.column(3).search(bool, false, true).draw()
   }
@@ -145,6 +162,7 @@
     collapse_date_header();
     table = $("#display_roll").DataTable({
       ordering: true,
+      info: false,
       columnDefs: [
         {
           "targets": [ 1, 2, 3 ],
@@ -166,6 +184,7 @@
       '<"row"<"col-sm-12"<"table-responsive"tr>>>' +
       '<"row"<"col-sm-5"i><"col-sm-7"p>>',
       buttons: [
+        "finalize_rolls"
         // only attendance monitors, devs, and tas can view these controls for the datatable
         // this allows the display of headers and filter by trainee year, gender and self attendance
         {% ifusergroup attendance_monitors|dev|training_assistant %}
