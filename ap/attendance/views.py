@@ -461,6 +461,17 @@ class StudyRollsView(TableRollsView):
 class HouseRollsView(TableRollsView):
   group_required = [u'HC', u'attendance_monitors', u'training_assistant']
 
+  def checkfinalize(trainees, e_type, week):
+    rfs = RollsFinalization.objects.filter(trainee__in=trainees, events_type=e_type)
+    for rf in rfs:
+      if not rf.has_week(week):
+        rfs = rfs.exclude(id=rf.id)
+
+    if trainees.count() == rfs.count():
+      return True
+    else:
+      return False
+
   def post(self, request, *args, **kwargs):
     if self.request.user.has_group(['attendance_monitors', 'training_assistant']):
       kwargs['house_id'] = self.request.POST.get('house')
@@ -492,13 +503,7 @@ class HouseRollsView(TableRollsView):
       ctx['houses'] = House.objects.filter(used=True).order_by("name").exclude(name__in=['TC', 'MCC', 'COMMUTER']).values("pk", "name")
 
     if not self.request.user.has_group(['attendance_monitors', 'training_assistant']):
-      rfs = RollsFinalization.objects.filter(trainee__in=trainees, events_type=kwargs['monitor'])
-      for rf in rfs:
-        if not rf.has_week(ctx['current_week']):
-          rfs = rfs.exclude(id=rf.id)
-
-      if trainees.count() == rfs.count():
-        ctx['finalized'] = True
+      ctx['finalized'] = checkfinalize(trainees, kwargs['monitor'], ctx['current_week'])
 
     return ctx
 
@@ -506,6 +511,17 @@ class HouseRollsView(TableRollsView):
 # Team Rolls
 class TeamRollsView(TableRollsView):
   group_required = [u'team_monitors', u'attendance_monitors', u'training_assistant']
+
+  def checkfinalize(trainees, e_type, week):
+    rfs = RollsFinalization.objects.filter(trainee__in=trainees, events_type=e_type)
+    for rf in rfs:
+      if not rf.has_week(week):
+        rfs = rfs.exclude(id=rf.id)
+
+    if trainees.count() == rfs.count():
+      return True
+    else:
+      return False
 
   def post(self, request, *args, **kwargs):
     if self.request.user.has_group(['attendance_monitors', 'training_assistant']):
@@ -538,13 +554,7 @@ class TeamRollsView(TableRollsView):
       ctx['teams'] = Team.objects.all().order_by("type", "name").values("pk", "name")
 
     if not self.request.user.has_group(['attendance_monitors', 'training_assistant']):
-      rfs = RollsFinalization.objects.filter(trainee__in=trainees, events_type=kwargs['monitor'])
-      for rf in rfs:
-        if not rf.has_week(ctx['current_week']):
-          rfs = rfs.exclude(id=rf.id)
-
-      if trainees.count() == rfs.count():
-        ctx['finalized'] = True
+      ctx['finalized'] = checkfinalize(trainees, kwargs['monitor'], ctx['current_week'])
 
     return ctx
 
