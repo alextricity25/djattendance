@@ -92,7 +92,7 @@ class Discipline(models.Model):
 
   def show_create_button(self):
     """checks whether create life-study button will show or not"""
-    return not (self.offense == 'MO' and date.today().weekday() != 0)
+    return self.quantity - len(self.summary_set.all()) > 0 and not (self.offense == 'MO' and date.today().weekday() != 0)
 
   # if this is True it means all the lifestudies has been approved and all
   # have been submitted. This assume num of summary submitted not larger
@@ -100,10 +100,10 @@ class Discipline(models.Model):
   def is_completed(self):
     if self.get_num_summary_due() > 0:
       return False
-    else:
-      for summary in self.summary_set.all():
-        if summary.approved is False:
-          return False
+    #else:
+    #  for summary in self.summary_set.all():
+    #    if summary.approved is False:
+    #      return False
     return True
 
   # increase the quantity of the discipline by the number specified. Add 1
