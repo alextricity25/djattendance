@@ -32,8 +32,8 @@ class LeaveSlipUpdate(GroupRequiredMixin, generic.UpdateView):
     listJSONRenderer = JSONRenderer()
     ctx = super(LeaveSlipUpdate, self).get_context_data(**kwargs)
     trainee = self.get_object().get_trainee_requester()
-    periods = self.get_object().periods
-    ctx.update(react_attendance_context(trainee, period=periods[0], noForm=True))
+    kwargs['period'] = self.get_object().periods[0]
+    ctx.update(react_attendance_context(trainee, request_params=kwargs))
     ctx['Today'] = self.get_object().get_date().strftime('%m/%d/%Y')
     ctx['SelectedEvents'] = listJSONRenderer.render(AttendanceEventWithDateSerializer(self.get_object().events, many=True).data)
     ctx['default_transfer_ta'] = self.request.user.TA or self.get_object().TA
@@ -48,6 +48,8 @@ class IndividualSlipUpdate(LeaveSlipUpdate):
   context_object_name = 'leaveslip'
 
   def get_context_data(self, **kwargs):
+    kwargs['leaveslip_type'] = 'individual'
+    kwargs['object_id'] = self.object.id
     ctx = super(IndividualSlipUpdate, self).get_context_data(**kwargs)
     current_ls = self.get_object()
     if current_ls.type in ['MEAL', 'NIGHT']:
@@ -61,7 +63,7 @@ class IndividualSlipUpdate(LeaveSlipUpdate):
     try:
       ctx['next_ls_url'] = find_next_leaveslip(current_ls).get_ta_update_url()
     except AttributeError:
-      ctx['next_ls_url'] = "%s?status=P&ta=%s" % (reverse('leaveslips:ta-leaveslip-list'), ctx['default_transfer_ta'].id)
+      ctx['next_ls_url'] = "%s?status=P&ta=%s" % (reverse('leaveslips:ta-leaveslip-list'), self.request.user.id)
     ctx['verbose_name'] = current_ls._meta.verbose_name
     current_ls.is_late = current_ls.late
     ctx['leaveslip'] = current_ls
@@ -87,12 +89,14 @@ class GroupSlipUpdate(LeaveSlipUpdate):
   context_object_name = 'leaveslip'
 
   def get_context_data(self, **kwargs):
+    kwargs['leaveslip_type'] = 'group'
+    kwargs['object_id'] = self.object.id
     ctx = super(GroupSlipUpdate, self).get_context_data(**kwargs)
     ctx['show'] = 'groupslip'
     try:
       ctx['next_ls_url'] = find_next_leaveslip(self.get_object()).get_ta_update_url()
     except AttributeError:
-      ctx['next_ls_url'] = "%s?status=P&ta=%s" % (reverse('leaveslips:ta-leaveslip-list'), ctx['default_transfer_ta'].id)
+      ctx['next_ls_url'] = "%s?status=P&ta=%s" % (reverse('leaveslips:ta-leaveslip-list'), self.request.user.id)
     current_ls = self.get_object()
     current_ls.is_late = current_ls.late
     ctx['leaveslip'] = current_ls
@@ -200,7 +204,7 @@ class TALeaveSlipList(GroupRequiredMixin, generic.TemplateView):
       slip.period = Term.current_term().period_from_date(slip.start.date())
       slips.append(slip)
 
-    slips = sorted(slips, key=lambda slip: slip.date, reverse=True)
+    slips = sorted(slips, key=lambda slip: slip.date)
 
     ctx['TA_list'] = TrainingAssistant.objects.filter(groups__name='regular_training_assistant')
     ctx['leaveslips'] = slips

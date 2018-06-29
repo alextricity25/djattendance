@@ -55,7 +55,7 @@ var interim_end = "{{admin.term_begin_date}}"
 $(document).ready(() => {
 
   var interim_start = "{{interim_start|date:'m/d/Y'}}";
-  
+
   show_hide_post_interim();
 
   $("#add_row").click(add_row);
@@ -76,7 +76,7 @@ $(document).ready(() => {
 });
 
 function show_hide_post_interim(){
-    if($('#id_intent_1, #id_intent_2').is(':checked')) {
+    if($('#id_intent_1, #id_intent_2, #id_intent_3').is(':checked')) {
       $("#id_post_intent_comments").show()
       $('label[for=id_post_intent_comments]').show();
       $("#id_post_training_intentions").show()
@@ -263,7 +263,7 @@ function show_hide_post_interim(){
     </div>
     <div class="row">
       <div class="col-md-2">
-        {{form.post_training_intentions.label_tag}}:
+        {{form.post_training_intentions.label_tag}}
       </div>
       <div class="col-md-2">
         {{form.post_training_intentions}}

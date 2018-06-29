@@ -56,6 +56,7 @@ urlpatterns = [
   url(r'^bible_tracker/', include('bible_tracker.urls', namespace='bible_tracker')),
   url(r'^announcements/', include('announcements.urls', namespace='announcements')),
   url(r'^services/', include('services.urls', namespace="services")),
+  url(r'^semi/', include('semi.urls', namespace="semi")),
   url(r'^house_requests/', include('house_requests.urls', namespace="house_requests")),
   url(r'^hc/', include('hc.urls', namespace="hc")),
   url(r'^room_reservations/', include('room_reservations.urls', namespace="room_reservations")),

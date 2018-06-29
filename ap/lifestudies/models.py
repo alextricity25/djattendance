@@ -1,7 +1,6 @@
 from datetime import date, datetime, time, timedelta
 
 from accounts.models import User
-from attendance.utils import Period
 from books.models import Book
 from django.core.exceptions import ValidationError
 from django.db import models

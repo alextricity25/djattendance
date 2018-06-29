@@ -18,7 +18,8 @@
   $(document).ready(function() {
     $("#mytable").DataTable({
       info: false,
-      paging: false,
+      paging: true,
+      lengthMenu: [ [50, 100, -1], [50, 100, "All"] ],
       autoWidth: true,
       order: [6, 'desc'],
       dom: '<"row"<"col-sm-6"Bl><"col-sm-6"f>>' +
