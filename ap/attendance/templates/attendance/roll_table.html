@@ -121,23 +121,6 @@
     action: gender_filter(1),
   };
 
-  function finalize_rolls(){
-    $.ajax({
-        type: "POST",
-        url: "/api/rolls/",
-        data: data,
-        success: function(response) {
-          $("td[data-row="+response.trainee+"][data-col="+response.event+"]").text(response.status);
-          new Notification(Notification.SUCCESS, 'Saved').show();
-        },
-      });
-  }
-
-  $.fn.datatable.ext.buttons.finalize_rolls = {
-    text: 'Finalize Rolls',
-    action: finalize_rolls()
-  }
-
   function selfattendance_filter(bool){
     table.column(3).search(bool, false, true).draw()
   }
@@ -184,7 +167,6 @@
       '<"row"<"col-sm-12"<"table-responsive"tr>>>' +
       '<"row"<"col-sm-5"i><"col-sm-7"p>>',
       buttons: [
-        "finalize_rolls"
         // only attendance monitors, devs, and tas can view these controls for the datatable
         // this allows the display of headers and filter by trainee year, gender and self attendance
         {% ifusergroup attendance_monitors|dev|training_assistant %}
@@ -258,6 +240,24 @@
       var select = $(e.currentTarget);
       var col = select.data("col");
       $("td[data-col='"+col+"'").text(select.val().trim()).blur();
+    }).on('click', '#finalize_rolls', function(e) {
+      data = {}
+      data.trainee_id = []
+      $("th[data-row]").each(function(){
+        data.trainee_id.push($(this).attr('data-row'))
+      })
+      data.event_type = '{{event_type}}'
+      data.week = $("#week_menu").find(":selected").val()
+
+      $.ajax({
+        type: "POST",
+        url: "{% url 'attendance:finalize-rolls'%}",
+        data: JSON.stringify(data),
+        success: function(response) {
+          new Notification(Notification.SUCCESS, 'Saved').show();
+          location.reload();
+        },
+      });
     });
 
     $("#week_menu, #team_menu, #house_menu").on("change", function(e) {
@@ -410,6 +410,7 @@
             {% endfor %}
           </tbody>
         </table>
+        <button id="finalize_rolls" class="btn btn-default" {% if finalized %} disabled {% endif %}>Finalize Rolls</button>
         {% else %}
         No rolls for this week
         {% endif %}

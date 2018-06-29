@@ -490,6 +490,16 @@ class HouseRollsView(TableRollsView):
     ctx['selected_house_id'] = house.id
     if self.request.user.has_group(['attendance_monitors', 'training_assistant']):
       ctx['houses'] = House.objects.filter(used=True).order_by("name").exclude(name__in=['TC', 'MCC', 'COMMUTER']).values("pk", "name")
+
+    if not self.request.user.has_group(['attendance_monitors', 'training_assistant']):
+      rfs = RollsFinalization.objects.filter(trainee__in=trainees, events_type=kwargs['monitor'])
+      for rf in rfs:
+        if not rf.has_week(ctx['current_week']):
+          rfs = rfs.exclude(id=rf.id)
+
+      if trainees.count() == rfs.count():
+        ctx['finalized'] = True
+
     return ctx
 
 
@@ -526,6 +536,16 @@ class TeamRollsView(TableRollsView):
     ctx['selected_team_id'] = team.id
     if self.request.user.has_group(['attendance_monitors', 'training_assistant']):
       ctx['teams'] = Team.objects.all().order_by("type", "name").values("pk", "name")
+
+    if not self.request.user.has_group(['attendance_monitors', 'training_assistant']):
+      rfs = RollsFinalization.objects.filter(trainee__in=trainees, events_type=kwargs['monitor'])
+      for rf in rfs:
+        if not rf.has_week(ctx['current_week']):
+          rfs = rfs.exclude(id=rf.id)
+
+      if trainees.count() == rfs.count():
+        ctx['finalized'] = True
+
     return ctx
 
 
@@ -541,6 +561,25 @@ class YPCRollsView(TableRollsView):
     ctx['title'] = "YPC Rolls"
     return ctx
 
+def finalize_rolls(request):
+  data = json.loads(request.body)
+  trainee_ids = data['trainee_id']
+  week = data['week']
+  if data['event_type'] == 'H':
+    e_type = 'HC'
+  elif data['event_type'] == 'T':
+    e_type = 'TM'
+  else:
+    e_type = 'AM'
+  for t_id in trainee_ids:
+    new_finalizerolls, created = RollsFinalization.objects.get_or_create(trainee=Trainee.objects.get(pk=t_id), events_type=e_type)
+    if created:
+      new_finalizerolls.weeks = str(week)
+    else:
+      new_finalizerolls.weeks = new_finalizerolls.weeks + "," + str(week)
+    new_finalizerolls.save()
+
+  return JsonResponse({'request': 'success'})
 
 class RFIDRollsView(TableRollsView):
   def get_context_data(self, **kwargs):
@@ -619,30 +658,30 @@ class AllAttendanceViewSet(BulkModelViewSet):
     return not all(x in filtered for x in qs)
 
 
-def finalize(request):
-  if not request.method == 'POST':
-    return HttpResponseBadRequest('Request must use POST method')
-  data = json.loads(request.body)
-  trainee = get_object_or_404(Trainee, id=data['trainee']['id'])
-  submitter = get_object_or_404(Trainee, id=data['submitter']['id'])
-  period_start = dateutil.parser.parse(data['weekStart'])
-  period_end = dateutil.parser.parse(data['weekEnd'])
-  rolls_this_week = trainee.rolls.filter(date__gte=period_start, date__lte=period_end)
-  if rolls_this_week.exists():
-    rolls_this_week.update(finalized=True)
-  else:
-    # we need some way to differentiate between those who have finalized and who haven't if they have no rolls
-    # add a dummy finalized present roll for this case
-    event = trainee.events[0] if trainee.events else (Event.objects.first() if Event.objects else None)
-    if not event:
-      return HttpResponseServerError('No events found')
-    roll = Roll(date=period_start, trainee=trainee, status='P', event=event, finalized=True, submitted_by=submitter)
-    roll.save()
-  listJSONRenderer = JSONRenderer()
-  rolls = listJSONRenderer.render(RollSerializer(Roll.objects.filter(trainee=trainee, submitted_by=trainee), many=True).data)
-  return JsonResponse({'rolls': json.loads(rolls)})
+# def finalize(request):
+#   if not request.method == 'POST':
+#     return HttpResponseBadRequest('Request must use POST method')
+#   data = json.loads(request.body)
+#   trainee = get_object_or_404(Trainee, id=data['trainee']['id'])
+#   submitter = get_object_or_404(Trainee, id=data['submitter']['id'])
+#   period_start = dateutil.parser.parse(data['weekStart'])
+#   period_end = dateutil.parser.parse(data['weekEnd'])
+#   rolls_this_week = trainee.rolls.filter(date__gte=period_start, date__lte=period_end)
+#   if rolls_this_week.exists():
+#     rolls_this_week.update(finalized=True)
+#   else:
+#     # we need some way to differentiate between those who have finalized and who haven't if they have no rolls
+#     # add a dummy finalized present roll for this case
+#     event = trainee.events[0] if trainee.events else (Event.objects.first() if Event.objects else None)
+#     if not event:
+#       return HttpResponseServerError('No events found')
+#     roll = Roll(date=period_start, trainee=trainee, status='P', event=event, finalized=True, submitted_by=submitter)
+#     roll.save()
+#   listJSONRenderer = JSONRenderer()
+#   rolls = listJSONRenderer.render(RollSerializer(Roll.objects.filter(trainee=trainee, submitted_by=trainee), many=True).data)
+#   return JsonResponse({'rolls': json.loads(rolls)})
 
-def finalize_rolls(request, event_type='EV'):
+def finalize_personal(request):
   if not request.method == 'POST':
     return HttpResponseBadRequest('Request must use POST method')
   data = json.loads(request.body)
@@ -651,7 +690,7 @@ def finalize_rolls(request, event_type='EV'):
   period_start = dateutil.parser.parse(data['weekStart'])
   # period_end = dateutil.parser.parse(data['weekEnd'])
   week = Term.objects.get(current=True).reverse_date(period_start.date())[0]
-  new_finalizerolls, created = RollsFinalization.objects.get_or_create(trainee=trainee, events_type=event_type)
+  new_finalizerolls, created = RollsFinalization.objects.get_or_create(trainee=trainee, events_type='EV')
   if created:
     new_finalizerolls.weeks = str(week)
   else:
