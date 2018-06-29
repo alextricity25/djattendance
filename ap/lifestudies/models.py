@@ -100,10 +100,6 @@ class Discipline(models.Model):
   def is_completed(self):
     if self.get_num_summary_due() > 0:
       return False
-    #else:
-    #  for summary in self.summary_set.all():
-    #    if summary.approved is False:
-    #      return False
     return True
 
   # increase the quantity of the discipline by the number specified. Add 1
