@@ -19,7 +19,6 @@ from django_countries import countries
 from houses.models import House
 from localities.models import Locality
 from schedules.models import Event, Schedule
-from schedules.utils import assign_trainees_to_schedule
 from seating.models import Chart, Partial
 from teams.models import Team
 from terms.models import Term
@@ -701,9 +700,6 @@ def import_csvfile(file_path):
       validate_row(row)
       import_row(row)
 
-  # for schedule in Schedule.objects.filter(term=term):
-  #   assign_trainees_to_schedule(schedule)
-
   log.info("Import complete")
   return True
 
@@ -726,15 +722,15 @@ def term_before(term):
 def migrate_schedule(schedule):
   if schedule is None:
     return
-
   # unlock schedule
   # change to latest term
   # clear trainees on schedule
+  # trainees are assigned to schedules manually
   term = Term.objects.order_by('start').last()
   schedule.is_locked = False
   schedule.term = term
-  schedule.trainees.clear()
   schedule.save()
+  schedule.trainees.clear()
   return schedule
 
 

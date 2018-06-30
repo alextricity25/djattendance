@@ -385,6 +385,9 @@ class Schedule(models.Model):
     if trainees:
       self.trainees.set(trainees)
 
+  def get_assign_url(self):
+    return reverse('schedules:assign-trainees', kwargs={'pk': self.id})
+
   def get_absolute_url(self):
     return reverse('schedules:admin-schedule', kwargs={'pk': self.id})
 

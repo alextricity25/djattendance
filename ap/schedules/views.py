@@ -1,5 +1,6 @@
 from accounts.models import Trainee
 from aputils.decorators import group_required
+from aputils.eventutils import EventUtils
 from aputils.trainee_utils import trainee_from_user
 from braces.views import GroupRequiredMixin
 from django.contrib import messages
@@ -8,7 +9,7 @@ from django.db.models import Q
 from django.forms.forms import NON_FIELD_ERRORS
 from django.forms.utils import ErrorList
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404
 from django.views import generic
 from django.views.generic import CreateView, DeleteView, UpdateView
 from rest_framework import filters, viewsets
@@ -20,14 +21,23 @@ from .serializers import (EventFilter, EventSerializer,
                           EventWithDateSerializer, ScheduleFilter,
                           ScheduleSerializer)
 from .utils import should_split_schedule, split_schedule
-from aputils.eventutils import EventUtils
 
 
-def assign_trainees_to_schedules(request):
-  for s in Schedule.objects.all():
+@group_required(['training_assistant', 'attendance_monitors'])
+def assign_trainees_view(request, pk):
+  if request.method == 'POST' and request.is_ajax():
+    s = get_object_or_404(Schedule, pk=pk)
     s.assign_trainees()
-  messages.success(request, 'Assigned trainees to schedules')
-  return redirect('home')
+    messages.success(request, 'Assigned trainees to schedules')
+  return JsonResponse({'success': "True"})
+
+
+@group_required(['training_assistant', 'attendance_monitors'])
+def assign_team_schedules(request):
+  ws = ','.join([str(x) for x in range(1, 19)])
+  for s in Schedule.objects.filter(Q(weeks=ws) & ~Q(team_roll=None)):
+    s.assign_trainees()
+  return HttpResponse("Assigned trainees to schedules")
 
 
 class EventDetail(generic.DetailView):
@@ -167,6 +177,7 @@ class ScheduleAdminUpdate(ScheduleCRUDMixin, UpdateView):
     ctx['button_label'] = 'Update'
     ctx['delete_button'] = True
     ctx['split_button'] = True
+    ctx['assign_trainees_button'] = True
     return ctx
 
   def form_valid(self, form):
