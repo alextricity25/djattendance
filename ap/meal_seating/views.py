@@ -68,14 +68,20 @@ def seatinglist(genderlist, gender):
     tables = Table.objects.filter(gender=gender)
     traineenum = 0
     tablenum = 0
-    totalcapacity = 0
-    meal_list = []
+    totalcapacity = 0    
     for x in Table.objects.all().filter(gender=gender).values("capacity"):
       totalcapacity += x["capacity"]
     if (len(genderlist) > totalcapacity):
       print "cannot seat ", len(genderlist), " trainees. Current capacity is: ", totalcapacity
       return None
     else:
+      # Make columns have max 55 trainees.
+      # rows will contain meal_seating.
+      mealCols = []
+      mealRows = []
+      maxRowPerCol = 55
+      # determines which set of 55 elements in mealRows to append to mealCols.
+      rowElementPartition = 0
       for trainee in genderlist:
         meal_seating = {}
         if traineenum == tables[tablenum].capacity:
@@ -84,9 +90,13 @@ def seatinglist(genderlist, gender):
         meal_seating["first_name"] = trainee.firstname
         meal_seating["last_name"] = trainee.lastname
         meal_seating["table"] = tables[tablenum]
-        meal_list.append(meal_seating)
+        mealRows.append(meal_seating)
+        if (len(mealRows) % maxRowPerCol) == 0:
+          rowElementPartition = len(mealRows) / maxRowPerCol
+          mealCols.append(mealRows[maxRowPerCol*(rowElementPartition-1):maxRowPerCol*rowElementPartition])
         traineenum += 1
-      return meal_list
+      mealCols.append(mealRows[maxRowPerCol*rowElementPartition:len(mealRows)])
+      return mealCols
 
 
 class TableListView(generic.ListView):
