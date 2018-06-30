@@ -68,7 +68,7 @@ def seatinglist(genderlist, gender):
     tables = Table.objects.filter(gender=gender)
     traineenum = 0
     tablenum = 0
-    totalcapacity = 0    
+    totalcapacity = 0
     for x in Table.objects.all().filter(gender=gender).values("capacity"):
       totalcapacity += x["capacity"]
     if (len(genderlist) > totalcapacity):
