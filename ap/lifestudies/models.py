@@ -3,6 +3,7 @@ from datetime import date, datetime, time, timedelta
 from accounts.models import User
 from books.models import Book
 from django.core.exceptions import ValidationError
+from django.core.urlresolvers import reverse
 from django.db import models
 from terms.models import Term
 
@@ -241,3 +242,6 @@ class Summary(models.Model):
 
   def prev(self):
     return Summary.objects.filter(date_submitted__lt=self.date_submitted, discipline=self.discipline).order_by('-date_submitted').first()
+
+  def get_absolute_url(self):
+    return reverse('lifestudies:summary_detail', kwargs={'pk': self.id})
