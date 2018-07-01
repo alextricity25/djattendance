@@ -5,7 +5,7 @@ from books.models import Book
 from django.core.exceptions import ValidationError
 from django.db import models
 from terms.models import Term
-
+from attendance.utils import Period
 
 """ lifestudies models.py
 This discipline module handles the assigning and managing of
@@ -110,7 +110,7 @@ class Discipline(models.Model):
   # summary if num is not specified
   def decrease_penalty(self, num=1):
     if self.quantity - num < 1:
-      #Delete the discipline
+      # Delete the discipline
       self.delete()
     else:
       self.quantity -= num
