@@ -5,6 +5,19 @@
 {% block title %}Assign Life-study{% endblock %}
 {% block scripts %}
   {{ form.media }}
+  <script>
+  function Hide() {
+    if (document.getElementById('infraction').options[document.getElementById('infraction').selectedIndex].value == "Missed Service") {
+      document.getElementById('missed_service').style.display = 'none';
+    }
+    else {
+      document.getElementById('missed_service').style.display = '';
+    }
+  }
+  window.onload = function() {
+    document.getElementById('infraction').onchange = Hide;
+  };
+  </script>
 {% endblock %}
 
 {% block tab3 %}class="active"{% endblock %}
@@ -15,7 +28,15 @@
 <div class="form-group col-mid-6">
   <form action="" method="post" class="form form-horizontal">
     {% csrf_token %}
-    {% bootstrap_form form layout='horizontal' %}
+    <div class="form-horizontal" name="discipline_metadata">
+      <div id='infraction'> {% bootstrap_field form.infraction label_class="col-md-2" field_class="col-md-4" %} </div>
+      {% bootstrap_field form.quantity label_class="col-md-2" field_class="col-md-4" %}
+      {% bootstrap_field form.due label_class="col-md-2" field_class="col-md-4" %}
+      {% bootstrap_field form.offense label_class="col-md-2" field_class="col-md-4" %}
+      {% bootstrap_field form.trainee label_class="col-md-2" field_class="col-md-4" %}
+      <div id='missed_service'> {% bootstrap_field form.missed_service label_class="col-md-2" field_class="col-md-4" %} </div>
+      {% bootstrap_field form.note label_class="col-md-2" field_class="col-md-4" %}
+    </div>
 
     <button type="submit" class="btn btn-success">Assign</button>
   </form>
