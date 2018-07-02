@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.db import models
 from terms.models import Term
-
+from attendance.utils import Period
 
 """ lifestudies models.py
 This discipline module handles the assigning and managing of
@@ -100,6 +100,17 @@ class Discipline(models.Model):
   # than num of summary assigned
   def is_completed(self):
     return self.get_num_summary_due() <= 0
+
+  # decrease the quantity of the discipline by the number specified. Subtract 1
+  # summary if num is not specified
+  def decrease_penalty(self, num=1):
+    if self.quantity - num < 1:
+      # Delete the discipline
+      self.delete()
+    else:
+      self.quantity -= num
+      self.save()
+    return self.quantity
 
   # increase the quantity of the discipline by the number specified. Add 1
   # more summary if num is not specified
