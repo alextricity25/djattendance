@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse
 
 from models import Announcement
-from lifestudies.models import Discipline, Summary
+from lifestudies.models import Summary
 from bible_tracker.models import BibleReading
 from leaveslips.models import IndividualSlip, GroupSlip
 from web_access.models import WebRequest
