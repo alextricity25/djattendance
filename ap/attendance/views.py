@@ -2,17 +2,10 @@ import json
 from copy import copy, deepcopy
 from collections import OrderedDict
 from datetime import date, datetime, time, timedelta
-
 import dateutil.parser
-from accounts.models import Trainee, TrainingAssistant
-from accounts.serializers import (TraineeForAttendanceSerializer,
-                                  TraineeRollSerializer,
-                                  TrainingAssistantSerializer)
-from ap.forms import TraineeSelectForm
-from aputils.decorators import group_required
-from aputils.eventutils import EventUtils
-from aputils.trainee_utils import is_trainee, trainee_from_user
+
 from braces.views import GroupRequiredMixin
+from django.contrib.auth.models import Group
 from django.core.urlresolvers import resolve, reverse_lazy
 from django.db.models import Q
 from django.forms.forms import NON_FIELD_ERRORS
@@ -22,16 +15,26 @@ from django.http import (HttpResponse, HttpResponseBadRequest,
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from rest_framework import filters, status
+from rest_framework.renderers import JSONRenderer
+from rest_framework_bulk import BulkModelViewSet
+from rest_framework.response import Response
+
+from accounts.models import Trainee, TrainingAssistant
+from accounts.serializers import (TraineeForAttendanceSerializer,
+                                  TraineeRollSerializer,
+                                  TrainingAssistantSerializer)
+
+from ap.forms import TraineeSelectForm
+from aputils.decorators import group_required
+from aputils.eventutils import EventUtils
+from aputils.trainee_utils import is_trainee, trainee_from_user
 from houses.models import House
 from leaveslips.models import GroupSlip, IndividualSlip
 from leaveslips.serializers import (GroupSlipSerializer,
                                     GroupSlipTADetailSerializer,
                                     IndividualSlipSerializer,
                                     IndividualSlipTADetailSerializer)
-from rest_framework import filters, status
-from rest_framework.renderers import JSONRenderer
-from rest_framework_bulk import BulkModelViewSet
-from rest_framework.response import Response
 from schedules.constants import WEEKDAYS
 from schedules.models import Event, Schedule
 from schedules.serializers import (AttendanceEventWithDateSerializer,
@@ -130,6 +133,9 @@ def react_attendance_context(trainee, request_params=None):
   rolls_bb = listJSONRenderer.render(RollSerializer(rolls, many=True).data)
   term_bb = listJSONRenderer.render(TermSerializer([CURRENT_TERM], many=True).data)
 
+  am_groups = Group.objects.filter(name__in=['attendance_monitors', 'training_assistant'])
+  groups = [g['id'] for g in am_groups.values('id')]
+
   ctx = {
       'events_bb': events_bb,
       'groupevents_bb': groupevents_bb,
@@ -141,7 +147,8 @@ def react_attendance_context(trainee, request_params=None):
       'TAs_bb': TAs_bb,
       'term_bb': term_bb,
       'trainee_select_form': trainee_select_form,
-      'disablePeriodSelect': disablePeriodSelect
+      'disablePeriodSelect': disablePeriodSelect,
+      'am_groups': json.dumps(groups),
   }
   return ctx
 

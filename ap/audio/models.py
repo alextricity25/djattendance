@@ -171,9 +171,10 @@ class AudioFile(models.Model):
   def classnotes(self, trainee):
     return Classnotes.objects.filter(trainee=trainee, event=self.event, date=self.date).first()
 
-  def has_leaveslip(self, trainee):
+  def has_leaveslip(self, trainee, attendance_record=None):
     has_leaveslip = False
-    attendance_record = trainee.attendance_record
+    if not attendance_record:
+      attendance_record = trainee.attendance_record
     excused_events = filter(lambda r: r['attendance'] == 'E', attendance_record)
     for record in excused_events:
       d = datetime.strptime(record['start'].split('T')[0], '%Y-%m-%d').date()

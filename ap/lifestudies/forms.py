@@ -4,7 +4,7 @@ from .models import Discipline, Summary
 from accounts.models import Trainee, Statistics
 from houses.models import House
 from books.models import Book
-from aputils.widgets import DatePicker
+from aputils.widgets import DatetimePicker
 
 
 class NewDisciplineForm(forms.ModelForm):
@@ -12,7 +12,7 @@ class NewDisciplineForm(forms.ModelForm):
     model = Discipline
     fields = '__all__'
     widgets = {
-      'due': DatePicker(),
+      'due': DatetimePicker(),
       'missed_service': forms.Textarea(attrs={'rows': 1}),
     }
 
@@ -80,6 +80,6 @@ class HouseDisciplineForm(forms.ModelForm):
   class Meta:
     model = Discipline
     exclude = ('trainee',)
-    widgets = { 'due': DatePicker() }
+    widgets = { 'due': DatetimePicker() }
 
   House = forms.ModelChoiceField(House.objects)
