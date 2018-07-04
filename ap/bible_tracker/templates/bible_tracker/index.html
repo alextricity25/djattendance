@@ -40,7 +40,7 @@ label.btn-primary.active:visited {
 <script type="text/javascript" src="{% static 'bible_tracker/js/bible_reading.js' %}"></script>
 <script type="text/javascript">
 /****** START UP ******/
-  
+
   // variables used in index and bible_tracker page
   var currentWeek = "{{current_week}}";
   var changeWeekUrl = "{% url 'bible_tracker:changeWeek' %}";
@@ -71,7 +71,7 @@ label.btn-primary.active:visited {
         id: users[i].id
       });
     }
-  
+
   $(document).ready(function() {
     $('body').on('click', '.btn-group .btn[disabled="disabled"]', function(event) {
       return false;
@@ -150,7 +150,7 @@ label.btn-primary.active:visited {
     $("#week_select option[id='" + week + "']").attr("selected", "selected");
     setDatesforWeek(week);
     changeWeek();
-    
+
     if (forced == "True") {
       new Notification(Notification.ERROR, 'Please fill out and finalize the Bible Reading Tracker for week ' + week + ' before moving on to other tasks. Thanks!').show();
     }

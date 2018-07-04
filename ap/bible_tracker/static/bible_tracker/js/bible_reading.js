@@ -61,7 +61,7 @@ function modifyBoxes(classname) {
     x.setAttribute("checked", "true");
 }
 
-function updateProgressBar(selector, data) {    
+function updateProgressBar(selector, data) {
     $(selector).css("width", data + "%");
     $(selector).html(data + "%");
     $(selector).attr("aria-valuenow", data);
