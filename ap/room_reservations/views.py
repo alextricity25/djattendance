@@ -26,7 +26,7 @@ TIMES_AM = [
 
 TIMES_PM = [
     '%s:%s%s' % (h, m, 'pm')
-    for h in (list(range(1, 12)))
+    for h in ([12]+list(range(1, 12)))
     for m in ('00', '30')
 ]
 
@@ -138,6 +138,7 @@ def tv_page_reservations(request):
     res = []
     for reservation in reservations:
       # Exclude events not on the current weekday
+
       if reservation.date > date.today() and reservation.date < Term.current_term().monday_start or date.today().weekday() != reservation.date.weekday():
         continue
       hours = reservation.end.hour - reservation.start.hour

@@ -40,15 +40,13 @@ class RollSerializer(BulkSerializerMixin, ModelSerializer):
       return Roll.objects.create(**validated_data)
     elif roll_override.count() == 1:  # if a roll already exists,
       # no changes if there's no status change
-      if status == roll_override.first().status:
-        return validated_data
-
       if status == 'P' and not leaveslips.exists():  # if input roll is "P" and no leave slip, delete it
         roll_override.delete()
         return validated_data
       roll = roll_override.first()
+
       if roll.trainee.self_attendance and (roll.trainee != submitted_by):
-        return Roll.objects.create(**validated_data)
+        return validated_data
       elif roll.trainee.self_attendance and (roll.trainee == submitted_by):
         roll_override.update(**validated_data)
         roll_override.update(last_modified=datetime.now())
@@ -57,6 +55,7 @@ class RollSerializer(BulkSerializerMixin, ModelSerializer):
         roll_override.update(**validated_data)
         return validated_data
       return validated_data
+
     elif roll_override.count() == 2:  # if duplicate rolls
       if trainee.self_attendance:
         r = roll_override.filter(submitted_by=submitted_by).first()

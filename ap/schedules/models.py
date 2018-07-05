@@ -388,7 +388,7 @@ class Schedule(models.Model):
     return reverse('schedules:admin-schedule', kwargs={'pk': self.id})
 
   def get_delete_url(self):
-    return reverse('schedules:admin-event-delete', kwargs={'pk': self.id})
+    return reverse('schedules:admin-schedule-delete', kwargs={'pk': self.id})
 
   def get_split__partial_url(self):
     return '/schedules/admin/schedules/split/%s/' % str(self.id)
