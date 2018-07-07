@@ -719,18 +719,18 @@ def term_before(term):
   return term_minus
 
 
-def migrate_schedule(schedule):
+def migrate_schedule(schedule, term):
   if schedule is None:
     return
+  # clear trainees on schedule
   # unlock schedule
   # change to latest term
-  # clear trainees on schedule
   # trainees are assigned to schedules manually
-  term = Term.objects.order_by('start').last()
+  schedule.trainees.clear()  # TODO: clearing doesn't work
+  schedule.save()
   schedule.is_locked = False
   schedule.term = term
   schedule.save()
-  schedule.trainees.clear()
   return schedule
 
 
@@ -747,10 +747,11 @@ def migrate_schedules():
   # dump all schedule data
   # delete all schedules with import_to_next_term = false
   # migrate all schedules with import_to_next_term = true
+  term = Term.objects.order_by('start').last()
   schedules_dump()
   Schedule.objects.filter(import_to_next_term=False).delete()
   for schedule in Schedule.objects_all.filter(import_to_next_term=True):
-    migrate_schedule(schedule)
+    migrate_schedule(schedule, term)
 
 
 def migrate_seating_chart(chart, term):

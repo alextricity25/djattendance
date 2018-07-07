@@ -1,27 +1,21 @@
+import json
 import logging
 import os
+from datetime import datetime, time, timedelta
 
-from datetime import datetime, timedelta, time
-import json
-
+from aputils.models import City
+from braces.views import SuperuserRequiredMixin
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import CreateView
-
 from terms.models import Term
-from aputils.models import City
 
-from .forms import DateForm, CityFormSet, TeamFormSet, HouseFormSet
-from .utils import (
-  create_term, generate_term,
-  term_start_date_from_semiannual,
-  validate_term, check_csvfile,
-  import_csvfile, save_file,
-  mid_term, migrate_schedules,
-  migrate_seating_charts, save_locality,
-  save_team, save_residence
-)
+from .forms import CityFormSet, DateForm, HouseFormSet, TeamFormSet
+from .utils import (check_csvfile, create_term, generate_term, import_csvfile,
+                    mid_term, migrate_schedules, migrate_seating_charts,
+                    save_file, save_locality, save_residence, save_team,
+                    term_start_date_from_semiannual, validate_term)
 
 CSV_FILE_DIR = os.path.join('apimport', 'csvFiles')
 
@@ -29,7 +23,7 @@ log = logging.getLogger("apimport")
 
 
 # Create your views here.
-class CreateTermView(CreateView):
+class CreateTermView(SuperuserRequiredMixin, CreateView):
   template_name = 'apimport/term_details.html'
   model = Term
   fields = []
@@ -119,7 +113,7 @@ class CreateTermView(CreateView):
     return redirect('apimport:process_csv')
 
 
-class ProcessCsvData(TemplateView):
+class ProcessCsvData(SuperuserRequiredMixin, TemplateView):
   template_name = 'apimport/process_csv.html'
   fields = []
 

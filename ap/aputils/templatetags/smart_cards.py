@@ -171,6 +171,7 @@ def generate_cards(context):
         header_title='Admin',
         card_links=[
             CardLink(title="Roll", url='admin/attendance/roll/'),
+            CardLink(title="Schedules", url=reverse('schedules:admin-schedule-table')),
         ]
     )
     cards.append(schedules_card)

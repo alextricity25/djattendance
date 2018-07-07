@@ -64,6 +64,11 @@ class TermEvents(generic.ListView):
     return context
 
 
+class AllSchedulesView(generic.ListView):
+  model = Schedule
+  template_name = 'schedules/schedules_list.html'
+
+
 #  API-ONLY VIEWS  #
 class EventViewSet(viewsets.ModelViewSet):
   queryset = Event.objects.all()

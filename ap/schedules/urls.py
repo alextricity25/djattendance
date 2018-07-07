@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^admin/events/delete/(?P<pk>\d+)$', views.EventAdminDelete.as_view(), name='admin-event-delete'),
     url(r'^admin/schedules/create/$', views.ScheduleAdminCreate.as_view(), name='admin-schedule-create'),
     url(r'^admin/schedules/(?P<pk>\d+)$', views.ScheduleAdminUpdate.as_view(), name='admin-schedule'),
+    url(r'^admin/schedules/table/$', views.AllSchedulesView.as_view(), name='admin-schedule-table'),
     url(r'^admin/schedules/delete/(?P<pk>\d+)$', views.ScheduleAdminDelete.as_view(), name='admin-schedule-delete'),
     url(r'^admin/schedules/split/(?P<pk>\d+)/(?P<week>\d+)$', views.split_schedules_view, name='admin-schedule-split')
 ]
