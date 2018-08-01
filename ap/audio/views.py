@@ -63,11 +63,12 @@ class AudioHome(generic.ListView):
   def get_queryset(self):
     trainee = trainee_from_user(self.request.user)
     files = AudioFile.objects.filter_list(self.week, trainee)
+    attendance_record = trainee.attendance_record
     for f in files:
       # replace methods with computed values because trainee can't be passed in template
       f.classnotes = f.classnotes(trainee)
       f.request = f.request(trainee)
-      f.has_leaveslip = f.has_leaveslip(trainee)
+      f.has_leaveslip = f.has_leaveslip(trainee, attendance_record)
       f.can_download = f.can_download(f.request, f.has_leaveslip)
     return files
 

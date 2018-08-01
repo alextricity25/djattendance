@@ -171,9 +171,10 @@ class AudioFile(models.Model):
   def classnotes(self, trainee):
     return Classnotes.objects.filter(trainee=trainee, event=self.event, date=self.date).first()
 
-  def has_leaveslip(self, trainee):
+  def has_leaveslip(self, trainee, attendance_record=None):
     has_leaveslip = False
-    attendance_record = trainee.attendance_record
+    if not attendance_record:
+      attendance_record = trainee.attendance_record
     excused_events = filter(lambda r: r['attendance'] == 'E', attendance_record)
     for record in excused_events:
       d = datetime.strptime(record['start'].split('T')[0], '%Y-%m-%d').date()
@@ -221,6 +222,12 @@ class AudioRequest(models.Model, RequestMixin):
   TA_comments = models.TextField(null=True, blank=True)
   trainee_comments = models.TextField()
   audio_requested = models.ManyToManyField(AudioFile, related_name='audio_requests')
+
+  def __unicode__(self):
+    return "<Audio Request ({2}) by {0}, {1}>".format(self.trainee_author, 
+                                                   self.date_requested.date(),
+                                                   self.status,
+    )
 
   @staticmethod
   def get_button_template():

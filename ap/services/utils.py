@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 from datetime import datetime
 from itertools import combinations
 from sets import Set
@@ -13,6 +13,12 @@ from leaveslips.models import GroupSlip
 from .models import (Assignment, Prefetch, SeasonalServiceSchedule, Service,
                      ServiceException, ServiceSlot, Sum, WorkerGroup)
 from .service_scheduler import ServiceScheduler
+from .constants import (
+      MAX_PREPS_PER_WEEK,
+      MAX_SERVICE_CATEGORY_PER_WEEK,
+      MAX_SERVICES_PER_DAY,
+      PREP,
+)
 
 
 '''
@@ -113,9 +119,7 @@ def hydrate(services, cws):
       # blow away cache
       wg = slot.worker_group
 
-      # If gender restrictions are either all brother/all sister, trim out half the gender by coin flip
       # https://developers.google.com/optimization/assignment/compare_mip_cp#assignment-with-allowed-groups-of-workers
-      # TODO(see link about avoiding this coin flip using MIP groups)
       if slot.gender == 'X' and slot.workers_required > 1:
         workers = set()
         for gender, _ in User.GENDER:
@@ -382,3 +386,40 @@ def merge_assigns(assigns):
     non_star_assignment.get_worker_list = lambda: non_stars
     assignments.append(non_star_assignment)
   return assignments
+
+
+class ServiceCheck(object):
+  def __init__(self, func, limit, name):
+    self.func = func
+    self.limit = limit
+    self.name = name
+
+  def check(self, assignments):
+    assignment_acc = [
+        self.func(a) for a in assignments
+        if self.func(a)
+    ]
+    counts = Counter(assignment_acc)
+
+    over_limit = False
+    for _, count in counts.items():
+      if count > self.limit:
+        over_limit = True
+    return over_limit
+
+def assignment_day(assignment):
+  return assignment.service.day
+
+def assignment_cat(assignment):
+  cat = assignment.service.category
+  return cat if not assignment.service.designated else None
+
+def assignment_prep(assignment):
+  service = assignment.service
+  return PREP if PREP in service.name and not "Breakfast" in service.name else None
+
+SERVICE_CHECKS = [
+    ServiceCheck(assignment_day, MAX_SERVICES_PER_DAY, '> {0} service/day'.format(MAX_SERVICES_PER_DAY)),
+    ServiceCheck(assignment_cat, MAX_SERVICE_CATEGORY_PER_WEEK, '> {0} category/week'.format(MAX_SERVICE_CATEGORY_PER_WEEK)),
+    ServiceCheck(assignment_prep, MAX_PREPS_PER_WEEK, '> {0} prep/week'.format(MAX_PREPS_PER_WEEK)),
+]

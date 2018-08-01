@@ -2,11 +2,14 @@ from collections import defaultdict, Counter
 
 from ortools.linear_solver import pywraplp
 
+from .constants import (
+    MAX_PREPS_PER_WEEK,
+    MAX_SERVICE_CATEGORY_PER_WEEK,
+    MAX_SERVICES_PER_DAY,
+    PREP
+)
 from .models import Assignment, Service, ServiceSlot
 from aputils.utils import timeit_inline
-
-
-PREP = 'Prep'
 
 
 class ServiceScheduler(object):
@@ -129,7 +132,7 @@ class ServiceScheduler(object):
       for i in range(num_workers):
         indices = worker_indices[workers[i]]
         solver.Add(solver.Sum(x[ind, j] for j in constrained_tasks
-                   for ind in indices) <= 1)
+                   for ind in indices) <= MAX_SERVICES_PER_DAY)
     t.end()
 
     t = timeit_inline("Adding two task categories per week constraint")
@@ -138,7 +141,7 @@ class ServiceScheduler(object):
       for i in range(num_workers):
         indices = worker_indices[workers[i]]
         solver.Add(solver.Sum(x[ind, j] for j in constrained_tasks
-                   for ind in indices) <= 2)
+                   for ind in indices) <= MAX_SERVICE_CATEGORY_PER_WEEK)
     t.end()
 
     t = timeit_inline("Adding one prep per week constraint")
@@ -147,7 +150,7 @@ class ServiceScheduler(object):
     for i in range(num_workers):
       indices = worker_indices[workers[i]]
       solver.Add(solver.Sum(x[ind, j] for j in constrained_tasks
-                 for ind in indices) <= 1)
+                 for ind in indices) <= MAX_PREPS_PER_WEEK)
     t.end()
 
     t = timeit_inline("Minimizing unfilled services, service uniformity")

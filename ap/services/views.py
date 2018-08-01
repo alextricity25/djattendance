@@ -32,7 +32,7 @@ from .serializers import (AssignmentPinSerializer, ExceptionActiveSerializer,
                           UpdateWorkerSerializer, WorkerAssignmentSerializer,
                           WorkerIDSerializer)
 from .utils import (assign, assign_leaveslips, merge_assigns,
-                    save_designated_assignments)
+                    save_designated_assignments, SERVICE_CHECKS)
 
 
 @timeit
@@ -93,20 +93,33 @@ def services_view(request, run_assign=False, generate_leaveslips=False):
       Prefetch('services__serviceslot_set', queryset=ServiceSlot.objects.all().order_by('-worker_group__assign_priority'))
   ).distinct()
 
-  worker_assignments = Worker.objects.select_related('trainee').prefetch_related(Prefetch('assignments',
-                                                                                          queryset=Assignment.objects.filter(week_schedule=cws).select_related('service', 'service_slot', 'service__category').order_by('service__weekday'),
-                                                                                          to_attr='week_assignments'))
-  for worker in worker_assignments:
-    worker.workload = sum(a.workload for a in worker.week_assignments)
+  pre_assignments = Assignment.objects.filter(week_schedule=cws)\
+                    .select_related('service',
+                                    'service_slot',
+                                    'service__category'
+                    )\
+                    .order_by('service__weekday')
+  worker_assignments = Worker.objects\
+                       .select_related('trainee')\
+                       .prefetch_related(Prefetch('assignments',
+                                                  queryset=pre_assignments,
+                                                  to_attr='week_assignments')
+                       )
 
-  exceptions = ServiceException.objects.all().prefetch_related('workers', 'services').select_related('schedule')
+  exceptions = ServiceException.objects.all()\
+               .prefetch_related('workers', 'services').select_related('schedule')
 
   # Getting all services to be displayed for calendar
-  services = Service.objects.filter(active=True).prefetch_related('serviceslot_set', 'worker_groups').order_by('start', 'end')
-  # .filter(Q(day__isnull=True) | Q(day__range=(week_start, week_end)))
+  services = Service.objects.filter(active=True)\
+             .prefetch_related('serviceslot_set', 'worker_groups')\
+             .order_by('start', 'end')
 
-  # attach services directly to trainees for easier template traversal
   for worker in worker_assignments:
+    worker.workload = sum(a.workload for a in worker.week_assignments)
+    worker.checks = [
+        c.check(worker.week_assignments) for c in SERVICE_CHECKS
+    ]
+    # attach services directly to trainees for easier template traversal
     service_db = {}
     for a in worker.week_assignments:
       service_db.setdefault(a.service.category, []).append((a.service, a.service_slot.name))
@@ -129,7 +142,8 @@ def services_view(request, run_assign=False, generate_leaveslips=False):
       'cws': cws,
       'current_week': current_week,
       'prev_week': (current_week - 1),
-      'next_week': (current_week + 1)
+      'next_week': (current_week + 1),
+      'service_checks': SERVICE_CHECKS,
   }
   return render(request, 'services/services_view.html', ctx)
 
