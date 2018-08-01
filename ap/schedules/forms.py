@@ -45,13 +45,16 @@ class ScheduleForm(forms.ModelForm):
   )
 
   def save(self, commit=True):
+    trainees_cleaned = self.cleaned_data['trainees']
     instance = super(ScheduleForm, self).save(commit=False)
     weeks = self.cleaned_data['weeks'].split(',')  # etc
     if len(weeks) > 1:
       weeks.sort(key=int)
     instance.weeks = ','.join(weeks)
+    if trainees_cleaned.count() == 0:
+      instance.trainees.clear()
     if commit:
-        instance.save()
+      instance.save()
     return instance
 
   def __init__(self, *args, **kwargs):

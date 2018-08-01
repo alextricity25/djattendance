@@ -28,7 +28,7 @@ def assign_trainees_view(request, pk):
   if request.method == 'POST' and request.is_ajax():
     s = get_object_or_404(Schedule, pk=pk)
     s.assign_trainees()
-    messages.success(request, 'Assigned trainees to schedules')
+    messages.success(request, 'Assigned trainees to schedule')
   return JsonResponse({'success': "True"})
 
 
@@ -37,7 +37,22 @@ def assign_team_schedules(request):
   ws = ','.join([str(x) for x in range(1, 19)])
   for s in Schedule.objects.filter(Q(weeks=ws) & ~Q(team_roll=None)):
     s.assign_trainees()
-  return HttpResponse("Assigned trainees to schedules")
+  return HttpResponse("Assigned trainees to team schedules")
+
+
+@group_required(['training_assistant', 'attendance_monitors'])
+def clear_team_schedules(request):
+  ws = ','.join([str(x) for x in range(1, 19)])
+  for s in Schedule.objects.filter(Q(weeks=ws) & ~Q(team_roll=None)):
+    s.trainees.clear()
+  return HttpResponse("Clear trainees from team schedules")
+
+
+@group_required(['training_assistant', 'attendance_monitors'])
+def clear_all_schedules(request):
+  for s in Schedule.objects.all():
+    s.trainees.clear()
+  return HttpResponse("Cleared trainees from all schedules")
 
 
 class EventDetail(generic.DetailView):
@@ -149,11 +164,11 @@ class EventAdminCreate(EventCRUDMixin, CreateView):
 
 class EventAdminUpdate(EventCRUDMixin, UpdateView):
   def get_context_data(self, **kwargs):
-      ctx = super(EventAdminUpdate, self).get_context_data(**kwargs)
-      ctx['page_title'] = 'Update Event'
-      ctx['button_label'] = 'Update'
-      ctx['delete_button'] = True
-      return ctx
+    ctx = super(EventAdminUpdate, self).get_context_data(**kwargs)
+    ctx['page_title'] = 'Update Event'
+    ctx['button_label'] = 'Update'
+    ctx['delete_button'] = True
+    return ctx
 
 
 class EventAdminDelete(EventCRUDMixin, DeleteView):
