@@ -5,16 +5,17 @@ from datetime import datetime, time, timedelta
 
 from aputils.models import City
 from braces.views import SuperuserRequiredMixin
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import CreateView
 from terms.models import Term
 
 from .forms import CityFormSet, DateForm, HouseFormSet, TeamFormSet
-from .utils import (check_csvfile, create_term, generate_term, import_csvfile,
-                    mid_term, migrate_schedules, migrate_seating_charts,
-                    save_file, save_locality, save_residence, save_team,
+from .utils import (check_csvfile, create_term, generate_term, get_row_count,
+                    get_row_from_csvfile, import_row, mid_term,
+                    migrate_schedules, migrate_seating_charts, save_file,
+                    save_locality, save_residence, save_team,
                     term_start_date_from_semiannual, validate_term)
 
 CSV_FILE_DIR = os.path.join('apimport', 'csvFiles')
@@ -120,7 +121,6 @@ class ProcessCsvData(SuperuserRequiredMixin, TemplateView):
   def get_context_data(self, **kwargs):
     context = super(ProcessCsvData, self).get_context_data(**kwargs)
 
-    # Check the CSV File
     localities, teams, residences = check_csvfile(self.request.session['file_path'])
 
     if localities or teams or residences:
@@ -143,14 +143,33 @@ class ProcessCsvData(SuperuserRequiredMixin, TemplateView):
       for residence in residences:
         initial_residence.append({'name': residence, 'city': anaheim})
       context['houseformset'] = HouseFormSet(initial=initial_residence, prefix='house')
-      context['import_complete'] = False
+      context['csv_passed'] = False
     else:
-      context['import_complete'] = import_csvfile(self.request.session['file_path'])
+      file_path = self.request.session['file_path']
+      context['csv_passed'] = True
+      context['row_count'] = get_row_count(file_path)
+      context['file_path'] = file_path
 
     return context
 
   def post(self, request, *args, **kwargs):
       return self.get(request, *args, **kwargs)
+
+
+def process_row(request):
+  if request.method == "POST" and request.is_ajax():
+    row_number = request.POST['rowNumber']
+    file_path = request.POST['filePath']
+    try:
+      row = get_row_from_csvfile(file_path, int(row_number))
+      name = row['stName'] + ' ' + row['lastName']
+      import_row(row)
+      return JsonResponse({'success': True, 'name': name})
+    except Exception as e:
+      print e
+      return JsonResponse({'success': False, 'rowNumber': row_number, 'error': str(e)})
+  else:
+    return JsonResponse({'success': False})
 
 
 def save_data(request):

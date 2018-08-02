@@ -3,9 +3,10 @@ import logging
 import os
 from datetime import date, datetime, time, timedelta
 from urllib import urlencode
+import itertools
 
 import requests
-from accounts.models import TrainingAssistant, User, UserMeta
+from accounts.models import TrainingAssistant, User, UserMeta, Trainee
 from aputils.models import Address, City, Vehicle
 from aputils.trainee_utils import is_trainee
 from dateutil.relativedelta import relativedelta
@@ -133,7 +134,8 @@ def create_term(season, year, start_date, end_date):
     DOES NOT CHECK to see if the data you're passing in is good or not.
     MAKE THE PROPER CHECKS FIRST."""
 
-  deactivate_previous_term()
+  # deactivate_previous_term()
+  Trainee.objects.all().update(is_active=False, team=None, house=None)
 
   try:
     term = Term.objects.get(season=season, year=year)
@@ -527,6 +529,21 @@ def validate_row(row):
         print "For %s: %s - Value is too long " % (k, v)
         rm = 25 - len(v)
         v = v[:rm]
+
+
+def get_row_count(file_path):
+  count = 0
+  with open(file_path, 'r') as f:
+    reader = csv.reader(f)
+    count = sum(1 for row in reader)
+  return count - 1  # account for header row
+
+
+def get_row_from_csvfile(file_path, row_number):
+  row = {}
+  with open(file_path, 'r') as f:
+    row = next(itertools.islice(csv.DictReader(f), row_number, None))
+  return row
 
 
 def import_row(row):
