@@ -6,6 +6,7 @@ from aputils.trainee_utils import trainee_from_user
 from aputils.utils import timeit_inline
 from attendance.models import Roll
 from attendance.utils import Period
+from braces.views import GroupRequiredMixin
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.urlresolvers import reverse_lazy
@@ -127,10 +128,12 @@ def post_summary(summary, request):
     messages.success(request, "Summary Un-Approved!")
 
 
-class DisciplineDetailView(DetailView):
+class DisciplineDetailView(GroupRequiredMixin, DetailView):
   model = Discipline
   context_object_name = 'discipline'
   template_name = 'lifestudies/discipline_detail.html'
+  group_required = [u'training_assistant']
+  raise_exception = True
 
   def post(self, request, *args, **kwargs):
     if 'summary_pk' in request.POST:
