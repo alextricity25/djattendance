@@ -69,6 +69,8 @@
 <!-- /Error messaging -->
 {% endif %}
 
+<a href="{% url 'schedules:admin-schedule-table' %}">Back To Table</a>
+
 <form id="id_form" action="" method="post">
   {% csrf_token %}
   {% bootstrap_form form %}
